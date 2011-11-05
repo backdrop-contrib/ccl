@@ -1,51 +1,81 @@
 <?php
+/**
+ * @file
+ * Provides administrative functions for ccl.
+ */
 
+/**
+ * CCL adminitsration form.
+ */
 function ccl_admin() {
-  $cache = ccl_cache_get('ccl_nodes');
-  // dpm($cache);
-  // dpm(array_keys($cache['ids']));
-  $blocks = ccl_get_blocks();
-  $cts = node_type_get_names();
-  
-  $header = array(
-    t('Title'),
-    t('URL'),
-    t('Type'),
-    t('Target'),
-    t('Operation')
-  );
-  $rows = array();
   $result = db_query("SELECT * FROM {ccl}");
-  
-  foreach ($result as $record) {
-    if ($record->global) {
-      $target = t('Global');
+  if ($result->rowCount()) {
+
+    // Get cached version of ccl entries, of blocks in the system and content type names
+    $cache = ccl_cache_get('ccl_nodes');
+    $blocks = ccl_get_blocks();
+    $cts = node_type_get_names();
+
+    // Prepare table header
+    $header = array(
+      t('Title'),
+      t('URL'),
+      t('Type'),
+      t('Target'),
+      t('Operation')
+    );
+
+    $rows = array();
+    foreach ($result as $record) {
+      // Target: Global
+      if ($record->global) {
+        $target = t('Global');
+      }
+      else {
+        // Target: Single Node
+        if ($record->type == 'node' && empty($record->ct)) {
+          $target = t('Node ID') . ': ' . $record->nid;
+        }
+        // Target: Content Type
+        elseif ($record->type == 'node' && !empty($record->ct)) {
+          $target = t('Content Type') . ': ' . $cts[$record->ct];
+        }
+        // Target: Block
+        else{
+          $target = t('Block') . ': ' . $blocks[$record->block];
+        }
+      }
+
+      // Prepare table row
+      $rows[] = array(
+        $record->title,
+        $record->link,
+        $record->type,
+        $target,
+        l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete')
+      );
     }
-    else {
-      if ($record->type == 'node' && empty($record->ct)) {
-        $target = t('Node ID: ') . $record->nid;
-      }
-      else if($record->type == 'node' && !empty($record->ct)){
-        $target = t('Content Type: ') . $cts[$record->ct];
-      }
-      else{
-        $target = t('Block: ') . $blocks[$record->block];
-      }
-    }
-    $rows[] = array(
-      $record->title,
-      $record->link,
-      $record->type,
-      $target,
-      l('Edit', 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l('Delete', 'admin/config/user-interface/ccl/' . $record->clid . '/delete')
+    return theme('table', array('header' => $header, 'rows' => $rows));
+  }
+
+  // No results text
+  else {
+    return array(
+      'empty_text' => array(
+        '#type' => 'markup',
+        '#markup' => '<p>' . t('No custom contextual links have been added yet. <a href="@add-page">Add a link here</a>.', array('@add-page' => url('admin/config/user-interface/ccl/add'))) . '</p>',
+      )
     );
   }
-  return theme('table', array('header' => $header, 'rows' => $rows));
 }
 
+/**
+ * Helper function to retrieve all the information for all blocks in the system.
+ */
 function ccl_get_blocks() {
   $block_info = cache_get('ccl_block_info');
 
+  // If no data is found in the cache invoke all block hooks and create the cache entry
   if (empty($block_info)) {
     $block_info = array();
     foreach (module_implements('block_info') as $module) {
@@ -62,7 +92,7 @@ function ccl_get_blocks() {
     }
     cache_set('ccl_block_info', $block_info);
   }
-  
+
   if (isset($block_info->cid)) {
     return $block_info->data;
   }
@@ -71,6 +101,12 @@ function ccl_get_blocks() {
   }
 }
 
+/**
+ * Link add and edit form.
+ *
+ * TODO:
+ * - Add better descriptions to form elements.
+ */
 function ccl_add_form($form, &$form_state, $clid = 0) {
   // Check if we are in edit mode and load the link values
   if ($clid) {
@@ -79,12 +115,12 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     if ($link->nid) {
       $node_options = 'node';
       $title = db_query('SELECT title FROM {node} WHERE nid = :nid', array(':nid' => $link->nid))->fetchField();
-      $nid_text = '[nid:'.$link->nid.'] ' . $title;
+      $nid_text = '[nid:' . $link->nid . '] ' . $title;
     }
-    elseif($link->ct){
+    elseif ($link->ct) {
       $node_options = 'ct';
     }
-    elseif($link->global){
+    elseif ($link->global) {
       $node_options = 'global';
     }
   }
@@ -100,7 +136,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     ),
     '#default_value' => $clid ? $link->type : 'node',
   );
-  
+
   $form['node_options'] = array(
     '#type' => 'radios',
     '#title' => t('Show link for'),
@@ -115,8 +151,10 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
         ':input[name="link_type"]' => array('value' => 'node'),
       ),
     ),
-    
+
   );
+
+  // Load the content type names
   $types = node_type_get_names();
   $form['ct'] = array(
     '#type' => 'select',
@@ -131,14 +169,14 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
       ),
     ),
   );
-  
+
   $form['nid'] = array(
     '#type' => 'textfield',
     '#title' => t('Node ID'),
     '#description' => t('The id of the node the link should be added to.'),
     '#size' => 40,
     '#maxlength' => 128,
-    // '#default_value' => isset($nid_text) ? $nid_text : -1,
+    '#default_value' => isset($nid_text) ? $nid_text : '',
     '#autocomplete_path' => 'admin/config/user-interface/ccl/autocomplete',
     '#states' => array(
       'visible' => array(
@@ -147,7 +185,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
       ),
     ),
   );
-  
+
   $form['global_block'] = array(
     '#type' => 'checkbox',
     '#title' => t('Add this link to all blocks'),
@@ -158,7 +196,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
       ),
     ),
   );
-  
+
   $options = ccl_get_blocks();
   $form['block'] = array(
     '#type' => 'select',
@@ -173,7 +211,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
       ),
     ),
   );
-  
+
   $form['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
@@ -193,27 +231,47 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#maxlength' => 255,
     '#required' => TRUE
   );
-  
+
   $form['save_link'] = array(
     '#type' => 'submit',
     '#value' => t('Save Link'),
   );
-  
-  
+
   return $form;
 }
 
-function ccl_add_form_submit($form, &$form_state){
+/**
+ * Validafion handler for ccl_add_form().
+ *
+ * TODO:
+ * - Add validation for URL
+ * - Add validation for field combintaions
+ *
+ * @see ccl_add_form()
+ */
+function ccl_add_form_validate($form, &$form_state) {
+
+}
+
+/**
+ * Submit handler for ccl_add_form().
+ *
+ * TODO:
+ * - Change the substitution for the nid autocomplete field.
+ *
+ * @see ccl_add_form()
+ */
+function ccl_add_form_submit($form, &$form_state) {
   $values = $form_state['values'];
-  
+
   // Check if we have a global setting
-  if($values['global_block'] && $values['link_type'] == 'block' || $values['link_type'] == 'node' && $values['node_options'] == 'global') {
+  if ($values['global_block'] && $values['link_type'] == 'block' || $values['link_type'] == 'node' && $values['node_options'] == 'global') {
     $global = 1;
   }
   else{
     $global = 0;
   }
-  
+
   // Extract the nid out of the autocomplete field
   if ($values['link_type'] == 'node' && $values['node_options'] == 'node') {
     $nid = substr($values['nid'], 5, strpos($values['nid'], ']'));
@@ -221,7 +279,7 @@ function ccl_add_form_submit($form, &$form_state){
   else{
     $nid = 0;
   }
-// dpm($values);
+
   $record = array(
     'type' => $values['link_type'],
     'global' => $global,
@@ -231,15 +289,15 @@ function ccl_add_form_submit($form, &$form_state){
     'title' => $values['title'],
     'link' => $values['link'],
   );
-  
-  if (isset($form_state['clid'])){
+
+  if (isset($form_state['clid'])) {
     $record['clid'] = $form_state['clid'];
     $res = drupal_write_record('ccl', $record, 'clid');
   }
   else{
     $res = drupal_write_record('ccl', $record);
   }
-  
+
   if ($res) {
     drupal_set_message(t('Contextual link saved.'));
     _ccl_update_cache();
@@ -250,20 +308,26 @@ function ccl_add_form_submit($form, &$form_state){
   drupal_goto('admin/config/user-interface/ccl');
 }
 
-function ccl_delete_confirm($form, &$form_state, $id){
+/**
+ * Link delete confirmation page.
+ */
+function ccl_delete_confirm($form, &$form_state, $id) {
   $form['clid'] = array(
     '#type' => 'value',
     '#value' => $id,
   );
-  return confirm_form($form, 
-    t('Are you sure you want to delete the link?'), 
+  return confirm_form($form,
+    t('Are you sure you want to delete the link?'),
     'admin/config/user-interface/ccl',
     t('This action cannot be undone.'),
     t('Delete'), t('Cancel')
   );
 }
 
-function ccl_delete_confirm_submit($form, &$form_state){
+/**
+ * Submit handler for link deletion page.
+ */
+function ccl_delete_confirm_submit($form, &$form_state) {
   if ($form_state['values']['confirm']) {
     db_delete('ccl')
       ->condition('clid', $form_state['values']['clid'])
@@ -272,4 +336,22 @@ function ccl_delete_confirm_submit($form, &$form_state){
     _ccl_update_cache();
     drupal_goto('admin/config/user-interface/ccl');
   }
+}
+
+/**
+ * Node ID autocomplete callback function.
+ */
+function ccl_node_autocomplete($string = '') {
+  $matches = array();
+  if ($string) {
+    $result = db_select('node', 'n')
+      ->fields('n', array('title', 'nid'))
+      ->condition('title', db_like($string) . '%', 'LIKE')
+      ->range(0, 10)
+      ->execute();
+    foreach ($result as $node) {
+      $matches['[nid:' . $node->nid . '] ' . check_plain($node->title)] = check_plain($node->title);
+    }
+  }
+  drupal_json_output($matches);
 }
