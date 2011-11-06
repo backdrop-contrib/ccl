@@ -104,8 +104,6 @@ function ccl_get_blocks() {
 /**
  * Link add and edit form.
  *
- * TODO:
- * - Add better descriptions to form elements.
  */
 function ccl_add_form($form, &$form_state, $clid = 0) {
   // Check if we are in edit mode and load the link values
@@ -115,7 +113,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     if ($link->nid) {
       $node_options = 'node';
       $title = db_query('SELECT title FROM {node} WHERE nid = :nid', array(':nid' => $link->nid))->fetchField();
-      $nid_text = '[nid:' . $link->nid . '] ' . $title;
+      $nid_text = $title . ' [nid:' . $link->nid . ']';
     }
     elseif ($link->ct) {
       $node_options = 'ct';
@@ -140,7 +138,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['link_group']['title'] = array(
     '#type' => 'textfield',
     '#title' => t('Title'),
-    '#description' => t('The title of the link.'),
+    '#description' => t('The title of this link as it will be displayed in the contextual widget.'),
     '#size' => 40,
     '#default_value' => $clid ? $link->title : '',
     '#maxlength' => 255,
@@ -151,7 +149,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#type' => 'textfield',
     '#title' => t('URL'),
     '#default_value' => $clid ? $link->link : '',
-    '#description' => t('The URL of the link. For nodes you can use \'%nid\' as a replacement token for the node id. Example: node/%nid/devel'),
+    '#description' => t('The URL of this link. For nodes you can use \'%nid\' as a replacement token for the node id. Example: node/%nid/devel'),
     '#size' => 40,
     '#maxlength' => 255,
     '#required' => TRUE
@@ -166,7 +164,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['options_group']['link_type'] = array(
     '#type' => 'radios',
     '#title' => t('Link Type'),
-    '#description' => t('Add a link for a node or a block.'),
+    '#description' => t('Select if this link should be displayed for a node or for a block.'),
     '#options' => array(
       'node' => t('Node'),
       'block' => t('Block'),
@@ -177,6 +175,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['options_group']['node_options'] = array(
     '#type' => 'radios',
     '#title' => t('Show link for'),
+    '#description' => t('Select if this link should be displayed for all nodes, all nodes of a content type or a specific node.'),
     '#options' => array(
       'node' => t('Single node'),
       'ct' => t('Content type'),
@@ -210,7 +209,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['options_group']['nid'] = array(
     '#type' => 'textfield',
     '#title' => t('Node ID'),
-    '#description' => t('The id of the node the link should be added to.'),
+    '#description' => t('Enter the title of the node or the id of the node this link should be added to.'),
     '#size' => 40,
     '#maxlength' => 128,
     '#default_value' => isset($nid_text) ? $nid_text : '',
@@ -238,7 +237,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['options_group']['block'] = array(
     '#type' => 'select',
     '#title' => t('Block'),
-    '#description' => t('The block the link should be added to.'),
+    '#description' => t('Seletc the block this link should be added to.'),
     '#options' => $options,
     '#default_value' => $clid ? $link->block : -1,
     '#states' => array(
@@ -260,21 +259,32 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
 /**
  * Validafion handler for ccl_add_form().
  *
- * TODO:
- * - Add validation for URL
- * - Add validation for field combintaions
- *
  * @see ccl_add_form()
  */
 function ccl_add_form_validate($form, &$form_state) {
+  $values = $form_state['values'];
 
+  // Check that the node id token is not used for blocks
+  if ($values['link_type'] == 'block' && strpos($values['link'], '%nid') !== FALSE) {
+    form_set_error('link', t('The node token \'%nid\' is only allowed in connection with the link type node.'));
+  }
+
+  // Check that that we can get the node id and trnasform it for saving right away.
+  if ($values['link_type'] == 'node' && $values['node_options'] == 'node') {
+    if (is_numeric($values['nid'])) {
+      form_set_value($form['options_group']['nid'], $values['nid'], $form_state);
+    }
+    elseif (preg_match('/\[nid:[0-9]*\]/', $values['nid'], $match)) {
+      form_set_value($form['options_group']['nid'], substr(rtrim($match[0], ']'), 5), $form_state);
+    }
+    else{
+      form_set_error('nid', t('Enter a node id or use the autocomplete widget to select an existing node.'));
+    }
+  }
 }
 
 /**
  * Submit handler for ccl_add_form().
- *
- * TODO:
- * - Change the substitution for the nid autocomplete field.
  *
  * @see ccl_add_form()
  */
@@ -289,19 +299,11 @@ function ccl_add_form_submit($form, &$form_state) {
     $global = 0;
   }
 
-  // Extract the nid out of the autocomplete field
-  if ($values['link_type'] == 'node' && $values['node_options'] == 'node') {
-    $nid = substr($values['nid'], 5, strpos($values['nid'], ']'));
-  }
-  else{
-    $nid = 0;
-  }
-
   $record = array(
     'type' => $values['link_type'],
     'global' => $global,
     'ct' => ($values['link_type'] == 'node' && $values['node_options'] == 'ct' ? $values['ct'] : ''),
-    'nid' => $nid,
+    'nid' => !empty($values['nid']) ? $values['nid'] : 0,
     'block' => ($values['link_type'] == 'block' && !$values['global_block'] ? $values['block'] : ''),
     'title' => $values['title'],
     'link' => $values['link'],
@@ -367,7 +369,7 @@ function ccl_node_autocomplete($string = '') {
       ->range(0, 10)
       ->execute();
     foreach ($result as $node) {
-      $matches['[nid:' . $node->nid . '] ' . check_plain($node->title)] = check_plain($node->title);
+      $matches[check_plain($node->title) . ' [nid:' . $node->nid . ']'] = check_plain($node->title);
     }
   }
   drupal_json_output($matches);
