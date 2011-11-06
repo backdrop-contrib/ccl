@@ -126,7 +126,44 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   }
 
   $form = array();
-  $form['link_type'] = array(
+  // Pull in library, js and css for the form
+  $form['#attached']['js'][] = drupal_get_path('module', 'ccl') . '/ccl.js';
+  $form['#attached']['css'][] = drupal_get_path('module', 'ccl') . '/ccl.css';
+  $form['#attached']['library'][] = array('system', 'ui.button');
+
+  $form['link_group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Link'),
+    '#collapsible' => TRUE,
+  );
+
+  $form['link_group']['title'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Title'),
+    '#description' => t('The title of the link.'),
+    '#size' => 40,
+    '#default_value' => $clid ? $link->title : '',
+    '#maxlength' => 255,
+    '#required' => TRUE,
+  );
+
+  $form['link_group']['link'] = array(
+    '#type' => 'textfield',
+    '#title' => t('URL'),
+    '#default_value' => $clid ? $link->link : '',
+    '#description' => t('The URL of the link. For nodes you can use \'%nid\' as a replacement token for the node id. Example: node/%nid/devel'),
+    '#size' => 40,
+    '#maxlength' => 255,
+    '#required' => TRUE
+  );
+
+  $form['options_group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Options'),
+    '#collapsible' => TRUE,
+  );
+
+  $form['options_group']['link_type'] = array(
     '#type' => 'radios',
     '#title' => t('Link Type'),
     '#description' => t('Add a link for a node or a block.'),
@@ -137,7 +174,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#default_value' => $clid ? $link->type : 'node',
   );
 
-  $form['node_options'] = array(
+  $form['options_group']['node_options'] = array(
     '#type' => 'radios',
     '#title' => t('Show link for'),
     '#options' => array(
@@ -156,7 +193,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
 
   // Load the content type names
   $types = node_type_get_names();
-  $form['ct'] = array(
+  $form['options_group']['ct'] = array(
     '#type' => 'select',
     '#title' => t('Content Type'),
     '#description' => t('The content type this link will be displayed for.'),
@@ -170,7 +207,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     ),
   );
 
-  $form['nid'] = array(
+  $form['options_group']['nid'] = array(
     '#type' => 'textfield',
     '#title' => t('Node ID'),
     '#description' => t('The id of the node the link should be added to.'),
@@ -186,7 +223,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     ),
   );
 
-  $form['global_block'] = array(
+  $form['options_group']['global_block'] = array(
     '#type' => 'checkbox',
     '#title' => t('Add this link to all blocks'),
     '#default_value' => $clid ? $link->global : -1,
@@ -198,7 +235,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   );
 
   $options = ccl_get_blocks();
-  $form['block'] = array(
+  $form['options_group']['block'] = array(
     '#type' => 'select',
     '#title' => t('Block'),
     '#description' => t('The block the link should be added to.'),
@@ -210,26 +247,6 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
         ':input[name="link_type"]' => array('value' => 'block'),
       ),
     ),
-  );
-
-  $form['title'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Title'),
-    '#description' => t('The title of the link.'),
-    '#size' => 40,
-    '#default_value' => $clid ? $link->title : '',
-    '#maxlength' => 255,
-    '#required' => TRUE,
-  );
-
-  $form['link'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Link'),
-    '#default_value' => $clid ? $link->link : '',
-    '#description' => t('The URL of the link. For nodes you can use \'%nid\' as a replacement token for the node id. Example: node/%nid/devel'),
-    '#size' => 40,
-    '#maxlength' => 255,
-    '#required' => TRUE
   );
 
   $form['save_link'] = array(

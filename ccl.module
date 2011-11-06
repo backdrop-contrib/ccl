@@ -34,7 +34,7 @@ function ccl_menu() {
   );
 
   $items['admin/config/user-interface/ccl/%/delete'] = array(
-    'title' => 'Delete',
+    'title' => 'Delete custom link',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ccl_delete_confirm', 4),
     'access arguments' => array('use ccl'),
@@ -42,7 +42,7 @@ function ccl_menu() {
   );
 
   $items['admin/config/user-interface/ccl/%/edit'] = array(
-    'title' => 'Edit',
+    'title' => 'Edit custom link',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('ccl_add_form', 4),
     'access arguments' => array('use ccl'),
@@ -56,17 +56,20 @@ function ccl_menu() {
       'file' => 'ccl.admin.inc',
       'type' => MENU_CALLBACK,
     );
+
   return $items;
 }
 
-/**
+/*
  * Implements hook_contextual_links_view_alter().
  *
  * TODO:
  * - Make sure all links are work in a multilanguage setup
- * - Include check for access control
  */
 function ccl_contextual_links_view_alter(&$element, $items) {
+  // Get the destination parameter
+  $dest = drupal_get_destination();
+
   // Node processing
   if (isset($element['#element']['#node']->nid)) {
     $nid = $element['#element']['#node']->nid;
@@ -74,24 +77,27 @@ function ccl_contextual_links_view_alter(&$element, $items) {
     $node_cache = ccl_cache_get('ccl_nodes');
 
     // Global elements
-    foreach ($node_cache['global'] as $id => $glinks) {
-      $glinks['href'] = str_replace('%nid', $nid, $glinks['href']);
-      $element['#links']['ccl-global-node-' . $id] = $glinks;
+    foreach ($node_cache['global'] as $id => $link) {
+      if ($processed_link = _ccl_prepare_link($link, $dest, $nid)) {
+        $element['#links']['ccl-global-node-' . $id] = $processed_link;
+      }
     }
 
     // Content Type
     if (in_array($type, array_keys($node_cache['ct']))) {
-      foreach ($node_cache['ct'][$type] as $id => $clinks) {
-        $clinks['href'] = str_replace('%nid', $nid, $clinks['href']);
-        $element['#links']['ccl-ct-' . $id] = $clinks;
+      foreach ($node_cache['ct'][$type] as $id => $link) {
+        if ($processed_link = _ccl_prepare_link($link, $dest, $nid)) {
+          $element['#links']['ccl-ct-' . $id] = $processed_link;
+        }
       }
     }
 
     // Individual nodes
     if (in_array($nid, array_keys($node_cache['ids']))) {
-      foreach ($node_cache['ids'][$nid] as $id => $ilinks) {
-        $ilinks['href'] = str_replace('%nid', $nid, $ilinks['href']);
-        $element['#links']['ccl-node-' . $id] = $ilinks;
+      foreach ($node_cache['ids'][$nid] as $id => $link) {
+        if ($processed_link = _ccl_prepare_link($link, $dest, $nid)) {
+          $element['#links']['ccl-node-' . $id] = $processed_link;
+        }
       }
     }
   }
@@ -102,14 +108,18 @@ function ccl_contextual_links_view_alter(&$element, $items) {
     $block_cache = ccl_cache_get('ccl_blocks');
 
     // Global Blocks
-    foreach ($block_cache['global'] as $id => $gblinks) {
-      $element['#links']['ccl-global-block-' . $id] = $gblinks;
+    foreach ($block_cache['global'] as $id => $link) {
+      if ($processed_link = _ccl_prepare_link($link, $dest)) {
+        $element['#links']['ccl-global-block-' . $id] = $processed_link;
+      }
     }
 
     // Individual blocks
     if (in_array($bid, array_keys($block_cache['ids']))) {
-      foreach ($block_cache['ids'][$bid] as $id => $iblinks) {
-        $element['#links']['ccl-block-' . $id] = $iblinks;
+      foreach ($block_cache['ids'][$bid] as $id => $link) {
+        if ($processed_link = _ccl_prepare_link($link, $dest)) {
+          $element['#links']['ccl-block-' . $id] = $processed_link;
+        }
       }
     }
   }
@@ -126,6 +136,25 @@ function ccl_cache_get($type) {
     $cache = cache_get($type);
   }
   return $cache->data;
+}
+
+/*
+ * Helper function for token replacement, destination and access control.
+ */
+function _ccl_prepare_link($link, $destination, $nid = 0) {
+  // If  a node id we might need to perfrom the token replacement
+  if ($nid) {
+    $link['href'] = str_replace('%nid', $nid, $link['href']);
+  }
+
+  // Check the access permission
+  if (drupal_valid_path($link['href'], TRUE)) {
+    $link['query'][] = $destination;
+    return $link;
+  }
+  else{
+    return FALSE;
+  }
 }
 
 /**
