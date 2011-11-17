@@ -149,11 +149,33 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#type' => 'textfield',
     '#title' => t('URL'),
     '#default_value' => $clid ? $link->link : '',
-    '#description' => t('The URL of this link. For nodes you can use \'%nid\' as a replacement token for the node id. Example: node/%nid/devel'),
+    '#description' => t('The URL of this link.'),
     '#size' => 40,
     '#maxlength' => 255,
     '#required' => TRUE
   );
+
+  $form['link_group']['token_group'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Tokens'),
+    '#description' => t('Token replacements will be performed for the link title and for the URL. Note that \'Node\' tokens will not be replaced for links that are added to blocks.'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+  );
+  
+  if (module_exists('token')) {
+    $form['link_group']['token_group']['tokens'] = array(
+      '#theme' => 'token_tree',
+      '#token_types' => array('node'),
+      '#global_types' => TRUE,
+      '#click_insert' => TRUE,
+    );
+  }
+  else {
+    $form['link_group']['token_group']['token_tree'] = array(
+      '#markup' => '<p>' . t('Enable the <a href="@drupal-token">Token module</a> to view the available token browser.', array('@drupal-token' => 'http://drupal.org/project/token')) . '</p>',
+    );
+  }
 
   $form['options_group'] = array(
     '#type' => 'fieldset',
