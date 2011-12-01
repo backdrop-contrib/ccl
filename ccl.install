@@ -67,3 +67,20 @@ function ccl_schema() {
   return $schema;
 }
 
+/**
+ * Fix entries with old node ID tokens to work with the core token integration.
+ */
+function ccl_update_7101() {
+  $rows = db_select('ccl', 'c')
+    ->fields('c', array('clid', 'link'))
+    ->condition('link', '%\%nid%', 'LIKE')
+    ->execute();
+
+  foreach ($rows as $row) {
+    $row->link = str_replace('%nid', '[node:nid]', $row->link);
+    db_update('ccl')
+      ->fields(array('link' => $row->link))
+      ->condition('clid', $row->clid)
+      ->execute();
+  }
+}
