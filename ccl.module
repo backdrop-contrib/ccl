@@ -11,7 +11,6 @@ function ccl_permission() {
   );
 }
 
-
 /**
  * Implements hook_menu().
  */
@@ -70,7 +69,7 @@ function ccl_contextual_links_view_alter(&$element, $items) {
   // Get the destination parameter
   $dest = drupal_get_destination();
 
-  // Node processing
+  // Check if we have a node link to process
   if (isset($element['#element']['#node']->nid)) {
     $node = $element['#element']['#node'];
     $node_cache = ccl_cache_get('ccl_nodes');
@@ -100,26 +99,10 @@ function ccl_contextual_links_view_alter(&$element, $items) {
       }
     }
   }
-
-  // Block processing
-  if (isset($element['#element']['#block']->delta)) {
-    $bid = $element['#element']['#block']->module . '|' . $element['#element']['#block']->delta;
-    $block_cache = ccl_cache_get('ccl_blocks');
-
-    // Global Blocks
-    foreach ($block_cache['global'] as $id => $link) {
-      if ($processed_link = _ccl_prepare_link($link, $dest)) {
-        $element['#links']['ccl-global-block-' . $id] = $processed_link;
-      }
-    }
-
-    // Individual blocks
-    if (in_array($bid, array_keys($block_cache['ids']))) {
-      foreach ($block_cache['ids'][$bid] as $id => $link) {
-        if ($processed_link = _ccl_prepare_link($link, $dest)) {
-          $element['#links']['ccl-block-' . $id] = $processed_link;
-        }
-      }
+  // If it's not a node, invoke submodules
+  else {
+    foreach (module_implements('ccl_add_link') as $module) {
+      $element = module_invoke($module, 'ccl_add_link', $element, $dest);
     }
   }
 }
@@ -147,7 +130,7 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
     $link['href'] = token_replace($link['href'], array('node' => $node));
     $link['title'] = token_replace($link['title'], array('node' => $node));
   }
-  // Token replacement for blocks
+  // General token replacement.
   else {
     $link['href'] = token_replace($link['href']);
     $link['title'] = token_replace($link['title']);
@@ -164,35 +147,28 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
 }
 
 /**
- * Helper function to write ccl settinga into the cache.
+ * Helper function to write ccl settings into the cache.
  */
 function _ccl_update_cache() {
   // Create entry for nodes
   $nodes = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'node'));
   $node_cache = array('global' => array(), 'ct' => array(), 'ids' => array());
   foreach ($nodes as $node) {
-    if ($node->global) {
+    $node->options = unserialize($node->options);
+    if ($node->options['node_options'] == 'global') {
       $node_cache['global'][] = array('title' => $node->title, 'href' => $node->link);
     }
-    elseif ($node->nid) {
-      $node_cache['ids'][$node->nid][] = array('title' => $node->title, 'href' => $node->link);
+    elseif ($node->options['node_options'] == 'node') {
+      $node_cache['ids'][$node->options['node_id']][] = array('title' => $node->title, 'href' => $node->link);
     }
     else{
-      $node_cache['ct'][$node->ct][] = array('title' => $node->title, 'href' => $node->link);
+      $node_cache['ct'][$node->options['node_type']][] = array('title' => $node->title, 'href' => $node->link);
     }
   }
   cache_set('ccl_nodes', $node_cache);
-
-  // Create entry for blocks
-  $blocks = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'block'));
-  $block_cache = array('global' => array(), 'ids' => array());
-  foreach ($blocks as $block) {
-    if ($block->global) {
-      $block_cache['global'][] = array('title' => $block->title, 'href' => $block->link);
-    }
-    else {
-      $block_cache['ids'][$block->block][] = array('title' => $block->title, 'href' => $block->link);
-    }
+  
+  // Invoke cache_update hook for submodules
+  foreach (module_implements('ccl_cache_update') as $module) {
+    module_invoke($module, 'ccl_cache_update');
   }
-  cache_set('ccl_blocks', $block_cache);
 }

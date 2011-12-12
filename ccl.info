@@ -1,5 +1,5 @@
 name = "Custom Contextual Links"
-description = "Add your own contextual links to blocks and nodes"
+description = "Add your own contextual links to nodes"
 
 core = 7.x
 dependencies[] = contextual
