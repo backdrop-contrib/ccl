@@ -24,29 +24,6 @@ function ccl_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'global' => array(
-        'description' => 'The flag that determines if the link is global.',
-        'type' => 'int',
-        'default' => 0
-      ),
-      'ct' => array(
-        'description' => 'The content type this link will target.',
-        'type' => 'varchar',
-        'length' => 255,
-        'default' => ''
-      ),
-      'nid' => array(
-        'description' => 'The node id that a link targets.',
-        'type' => 'int',
-        'unsigned' => TRUE,
-        'default' => 0
-      ),
-      'block' => array(
-        'description' => 'The block identifier a link targets.',
-        'type' => 'varchar',
-        'length' => 255,
-        'default' => ''
-      ),
       'title' => array(
         'description' => 'The title of link.',
         'type' => 'varchar',
