@@ -48,6 +48,7 @@ function ccl_admin() {
       else {
         foreach (module_implements('ccl_link_info') as $module) {
           $options = module_invoke($module, 'ccl_link_info', $record);
+          if (!empty($options)) break;
         }
       }
 
