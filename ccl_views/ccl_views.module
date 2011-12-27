@@ -130,10 +130,10 @@ function ccl_views_ccl_cache_update(){
     $view->options = unserialize($view->options);
     if($view->options['view_options'] == 0) {
       $view_cache['global'][] = array('title' => $view->title, 'href' => $view->link);
-    } elseif ($view->options['view_display']) {
-      $view_cache['views'][$view->options['view_display']][] = array('title' => $view->title, 'href' => $view->link);
-    } else {
-      $view_cache['displays'][$view->view][] = array('title' => $view->title, 'href' => $view->link);
+    } elseif ($view->options['view_options'] == 2) {
+      $view_cache['displays'][$view->options['view_display']][] = array('title' => $view->title, 'href' => $view->link);
+    } elseif ($view->options['view_options'] == 1) {
+      $view_cache['views'][$view->options['view_view']][] = array('title' => $view->title, 'href' => $view->link);
     }
   }
   cache_set('ccl_view', $view_cache);
