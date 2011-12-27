@@ -29,7 +29,7 @@ function ccl_admin() {
       // Prepeare the options display
       if ($record->type == 'node') {
         $link_options = unserialize($record->options);
-        switch($link_options['node_options']) {
+        switch ($link_options['node_options']) {
           case 'global':
             $options = t('Attached to all nodes.');
             break;
@@ -37,13 +37,13 @@ function ccl_admin() {
           case 'ct':
             $options = t('Attached to all nodes of the content type %ct.', array('%ct' => $cts[$link_options['node_type']]));
             break;
-            
+
           case 'node':
             $node_title = db_query('SELECT title FROM {node} WHERE nid = :nid', array(':nid' => $link_options['node_id']))->fetchField();
             $options = t('Attached to %node_title [NID: !nid].', array('%node_title' => $node_title, '!nid' => $link_options['node_id']));
             break;
         }
-               
+
       }
       else {
         foreach (module_implements('ccl_link_info') as $module) {
@@ -85,7 +85,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     $link = db_query('SELECT * FROM {ccl} WHERE clid = :clid', array(':clid' => $clid))->fetchObject();
     $form_state['clid'] = $clid;
     $form_state['link'] = $link;
-    
+
     // Unserialize options
     $link->options = unserialize($link->options);
     $node_options = $link->options['node_options'];
@@ -100,7 +100,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['#attached']['library'][] = array('system', 'ui.button');
   $form['#attached']['js'][] = drupal_get_path('module', 'ccl') . '/ccl.js';
   $form['#attached']['css'][] = drupal_get_path('module', 'ccl') . '/ccl.css';
-  
+
 
   $form['link_group'] = array(
     '#type' => 'fieldset',
@@ -135,7 +135,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
-  
+
   if (module_exists('token')) {
     $form['link_group']['token_group']['tokens'] = array(
       '#theme' => 'token_tree',
@@ -253,7 +253,7 @@ function ccl_add_form_validate($form, &$form_state) {
  */
 function ccl_add_form_submit($form, &$form_state) {
   $values = $form_state['values'];
-  
+
   // Extract the options out of the values.
   $options = array();
   foreach ($values as $key => $data) {
@@ -261,7 +261,7 @@ function ccl_add_form_submit($form, &$form_state) {
       $options[$key] = $data;
     }
   }
-  
+
   $record = array(
     'type' => $values['ccl_type'],
     'title' => $values['ccl_title'],

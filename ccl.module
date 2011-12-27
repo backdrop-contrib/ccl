@@ -166,7 +166,7 @@ function _ccl_update_cache() {
     }
   }
   cache_set('ccl_nodes', $node_cache);
-  
+
   // Invoke cache_update hook for submodules
   foreach (module_implements('ccl_cache_update') as $module) {
     module_invoke($module, 'ccl_cache_update');
