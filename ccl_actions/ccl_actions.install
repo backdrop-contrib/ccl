@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Remove links created by the actions submodule.
+ */
+function ccl_actions_uninstall() {
+  db_delete('ccl')
+  ->condition('type', 'action')
+  ->execute();
+}

@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Remove links created by the blocks submodule.
+ */
+function ccl_blocks_uninstall() {
+  db_delete('ccl')
+  ->condition('type', 'block')
+  ->execute();
+}
