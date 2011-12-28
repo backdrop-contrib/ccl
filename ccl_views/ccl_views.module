@@ -19,11 +19,8 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
 
   // Follow the naming conventions outlined here in order to avoid naming conflicts.
   // view_options default.
-  if ($clid && $link->options['view_options'] == 0 ) {
-    $view_options_default = 0;
-  }
-  elseif ($clid && $link->options['view_options'] == 1) {
-    $view_options_default = 1;
+  if ($clid && isset($link->options['view_options'])) {
+    $view_options_default = $link->options['view_options'];
   }
   else {
     $view_options_default = 2;
@@ -51,7 +48,7 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
     '#title' => t('Views displays'),
     '#description' => t('Select the views display this link should be added to.'),
     '#options' => $options['displays'],
-    '#default_value' => $clid ? $link->options['view_display'] : -1,
+    '#default_value' => ($clid && isset($link->options['view_display'])) ? $link->options['view_display'] : -1,
     '#states' => array(
       'visible' => array(
         ':input[name="view_options"]' => array('value' => 2),
@@ -65,7 +62,7 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
     '#title' => t('Views'),
     '#description' => t('Select the view this link should be added to.'),
     '#options' => $options['views'],
-    '#default_value' => $clid ? $link->options['view_view'] : -1,
+    '#default_value' => ($clid && isset($link->options['view_view'])) ? $link->options['view_view'] : -1,
     '#states' => array(
       'visible' => array(
         ':input[name="view_options"]' => array('value' => 1),
@@ -183,19 +180,24 @@ function _ccl_views_get_info() {
  */
 function ccl_views_ccl_link_info($record) {
   if ($record->type == 'view') {
+    $options_return = array(
+      'desc' => '',
+      'op' => l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete')
+    );
     $options = unserialize($record->options);
 
     if ($options['view_options'] == 0) {
-      return t('Attached to all views.');
+      $options_return['desc'] = t('Attached to all views.');
     }
     elseif ($options['view_options'] == 1) {
       $views = _ccl_views_get_info();
-      return t('Attached to the %view view.', array('%view' => $views['views'][$options['view_view']]));
+      $options_return['desc'] =  t('Attached to the %view view.', array('%view' => $views['views'][$options['view_view']]));
     }
     elseif ($options['view_options'] == 2) {
       $views = _ccl_views_get_info();
-      return t('Attached to the %view view display.', array('%view' => $views['displays'][$options['view_display']]));
+      $options_return['desc'] =  t('Attached to the %view view display.', array('%view' => $views['displays'][$options['view_display']]));
     }
+    return $options_return;
   }
   else {
     return "";

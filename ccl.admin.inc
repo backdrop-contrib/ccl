@@ -25,24 +25,25 @@ function ccl_admin() {
 
     $rows = array();
     foreach ($result as $record) {
-      $options = "";
+      $options = array('desc' => '', 'op' => '');
       // Prepeare the options display
       if ($record->type == 'node') {
         $link_options = unserialize($record->options);
         switch ($link_options['node_options']) {
           case 'global':
-            $options = t('Attached to all nodes.');
+            $options['desc'] = t('Attached to all nodes.');
             break;
 
           case 'ct':
-            $options = t('Attached to all nodes of the content type %ct.', array('%ct' => $cts[$link_options['node_type']]));
+            $options['desc'] = t('Attached to all nodes of the content type %ct.', array('%ct' => $cts[$link_options['node_type']]));
             break;
 
           case 'node':
             $node_title = db_query('SELECT title FROM {node} WHERE nid = :nid', array(':nid' => $link_options['node_id']))->fetchField();
-            $options = t('Attached to %node_title [NID: !nid].', array('%node_title' => $node_title, '!nid' => $link_options['node_id']));
+            $options['desc'] = t('Attached to %node_title [NID: !nid].', array('%node_title' => $node_title, '!nid' => $link_options['node_id']));
             break;
         }
+        $options['op'] = l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete');
 
       }
       else {
@@ -57,8 +58,8 @@ function ccl_admin() {
         $record->title,
         $record->link,
         $record->type,
-        $options,
-        l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete')
+        $options['desc'],
+        $options['op']
       );
     }
     return theme('table', array('header' => $header, 'rows' => $rows));

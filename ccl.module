@@ -99,11 +99,9 @@ function ccl_contextual_links_view_alter(&$element, $items) {
       }
     }
   }
-  // If it's not a node, invoke submodules
-  else {
-    foreach (module_implements('ccl_add_link') as $module) {
-      $element = module_invoke($module, 'ccl_add_link', $element, $dest);
-    }
+  // Invoke submodules
+  foreach (module_implements('ccl_add_link') as $module) {
+    $element = module_invoke($module, 'ccl_add_link', $element, $dest);
   }
 }
 
