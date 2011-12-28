@@ -23,7 +23,7 @@ function ccl_actions_menu() {
     'title' => 'CCL Action Trigger',
     'page callback' => 'ccl_actions_trigger',
     'page arguments' => array(5, 6, 7),
-    'access arguments' => array('use ccl'),
+    'access arguments' => array('access contextual links'),
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -137,6 +137,11 @@ function ccl_actions_form($form, &$form_state, $clid = 0) {
   return $form;
 }
 
+/**
+ * Validafion handler for ccl_actions_form().
+ *
+ * @see ccl_actions_form()
+ */
 function ccl_actions_form_validate($form, &$form_state) {
   $values = $form_state['values'];
 
@@ -154,6 +159,11 @@ function ccl_actions_form_validate($form, &$form_state) {
   }
 }
 
+/**
+ * Submit handler for ccl_actions_form().
+ *
+ * @see ccl_actions_form()
+ */
 function ccl_actions_form_submit($form, &$form_state) {
   $form_state['values']['ccl_type'] = t('action');
   $selected_actions = array_filter($form_state['values']['actions_select']);
@@ -165,7 +175,7 @@ function ccl_actions_form_submit($form, &$form_state) {
 }
 
 /**
- * Hook function to process the contextual links element
+ * Hook function to process the contextual links element.
  */
 function ccl_actions_ccl_add_link($element, $dest) {
   if (isset($element['#element']['#node']->nid)) {
@@ -263,10 +273,15 @@ function _ccl_actions_prepare_link($actions, $node, &$element, $dest) {
     }
   }
 }
+
 /**
- * Trigger function to execute actions
+ * Trigger function to execute actions.
  */
 function ccl_actions_trigger($node, $action, $state) {
+  if (!node_access('update', $node)) {
+    drupal_set_message(t('You have no permission to update %node_title.', array('%node_title' => $node->title)), 'error');
+    drupal_goto();
+  }
   switch ($action) {
     case 'status':
       if ($state) {
