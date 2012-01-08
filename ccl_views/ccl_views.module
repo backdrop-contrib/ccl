@@ -51,7 +51,7 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
     '#default_value' => ($clid && isset($link->options['view_display'])) ? $link->options['view_display'] : -1,
     '#states' => array(
       'visible' => array(
-        ':input[name="view_options"]' => array('value' => 2),
+        ':input[name="view_options"]' => array('value' => '2'),
         ':input[name="ccl_type"]' => array('value' => 'view'),
       ),
     ),
@@ -65,7 +65,7 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
     '#default_value' => ($clid && isset($link->options['view_view'])) ? $link->options['view_view'] : -1,
     '#states' => array(
       'visible' => array(
-        ':input[name="view_options"]' => array('value' => 1),
+        ':input[name="view_options"]' => array('value' => '1'),
         ':input[name="ccl_type"]' => array('value' => 'view'),
       ),
     ),
