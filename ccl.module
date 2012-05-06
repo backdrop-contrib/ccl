@@ -59,6 +59,35 @@ function ccl_menu() {
   return $items;
 }
 
+/**
+ * Implements hook_features_api().
+ */
+function ccl_features_api() {
+  return array(
+    'ccl' => array(
+      'name' => 'Custom Contextual Links',
+      'file' => drupal_get_path('module', 'ccl') . '/ccl.features.inc',
+      'default_hook' => 'ccl_features_preset',
+      'feature_source' => TRUE,
+    ),
+  );
+}
+
+function ccl_get_presets($title = NULL) {
+  $presets = array();
+  if ($title) {
+    $results = db_query('SELECT * FROM {ccl} WHERE title = :title;', array(':title' => $title));
+  }
+  else {
+    $results = db_query('SELECT * FROM {ccl};');
+  }
+
+  while ($result = $results->fetchObject()) {
+    $presets[] = $result;
+  }
+  return $presets;
+}
+
 /*
  * Implements hook_contextual_links_view_alter().
  *
