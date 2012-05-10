@@ -127,14 +127,22 @@ function ccl_views_ccl_cache_update() {
   $view_cache = array('global' => array(), 'displays' => array(), 'views' => array());
   foreach ($views as $view) {
     $view->options = unserialize($view->options);
+    $advanced = array();
+    if (isset($view->options['advanced_css'])) {
+      $advanced['class'] = $view->options['advanced_css'];
+    }
+    if (isset($view->options['advanced_query'])) {
+      $advanced['query'] = $view->options['advanced_query'];
+    }
+
     if ($view->options['view_options'] == 0) {
-      $view_cache['global'][] = array('title' => $view->title, 'href' => $view->link);
+      $view_cache['global'][] = array('title' => $view->title, 'href' => $view->link, 'advanced' => $advanced);
     }
     elseif ($view->options['view_options'] == 2) {
-      $view_cache['displays'][$view->options['view_display']][] = array('title' => $view->title, 'href' => $view->link);
+      $view_cache['displays'][$view->options['view_display']][] = array('title' => $view->title, 'href' => $view->link, 'advanced' => $advanced);
     }
     elseif ($view->options['view_options'] == 1) {
-      $view_cache['views'][$view->options['view_view']][] = array('title' => $view->title, 'href' => $view->link);
+      $view_cache['views'][$view->options['view_view']][] = array('title' => $view->title, 'href' => $view->link, 'advanced' => $advanced);
     }
   }
   cache_set('ccl_view', $view_cache);

@@ -4,7 +4,7 @@
  * @file
  *
  * Integrates Features for Custom Contextual Links.
- **/
+ */
 
 /**
  * Implements hook_features_export_options. [component_hook]
