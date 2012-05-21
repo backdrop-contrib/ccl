@@ -166,7 +166,7 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
 
     // Add query if available and destination
     $link['query'] = $destination;
-    if (isset($link['advanced']['query'])) {
+    if (isset($link['advanced']['query']) && !empty($link['advanced']['query'])) {
       $query = $node ? token_replace($link['advanced']['query'], array('node' => $node)) : token_replace($link['advanced']['query']);
       $qparts = explode('&', $query);
       foreach ($qparts as $value) {

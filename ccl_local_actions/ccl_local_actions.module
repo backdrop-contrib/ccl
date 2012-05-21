@@ -19,7 +19,7 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
   $form['options_group']['ccl_type']['#options']['local_action'] = t('Local Action');
 
   $form['options_group']['la_title'] = array(
-    '#type' => 'item', 
+    '#type' => 'item',
     '#title' => t('Visibility settings'),
       '#states' => array(
       'visible' => array(
@@ -28,10 +28,10 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
     ),
 
   );
-  
+
   // Visibility settings.
   $form['options_group']['la'] = array(
-    '#type' => 'container', 
+    '#type' => 'container',
     '#states' => array(
       'visible' => array(
         ':input[name="ccl_type"]' => array('value' => 'local_action'),
@@ -47,36 +47,36 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
 
   // Per-path visibility.
   $form['options_group']['la']['page_title'] = array(
-    '#markup' => '<h5><a href="#">' . t('Pages') . '</a></h5>', 
+    '#markup' => '<h5><a href="#">' . t('Pages') . '</a></h5>',
   );
 
   $options = array(
-    0 => t('All pages except those listed'), 
+    0 => t('All pages except those listed'),
     1 => t('Only the listed pages'),
-  );  
+  );
   $form['options_group']['la']['la_visibility'] = array(
-    '#type' => 'radios', 
-    '#title' => t('Show link on specific pages'), 
-    '#options' => $options, 
+    '#type' => 'radios',
+    '#title' => t('Show link on specific pages'),
+    '#options' => $options,
     '#default_value' => ($clid && isset($link->options['la_visibility'])) ? $link->options['la_visibility'] : 1,
     '#prefix' => '<div>',
   );
   $form['options_group']['la']['la_pages'] = array(
-    '#type' => 'textarea', 
+    '#type' => 'textarea',
     '#default_value' => ($clid && isset($link->options['la_pages'])) ? $link->options['la_pages'] : '',
     '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
     '#suffix' => '</div>',
   );
 
   $form['options_group']['la']['ct_title'] = array(
-    '#markup' => '<h5><a href="#">' . t('Content Types') . '</a></h5>', 
+    '#markup' => '<h5><a href="#">' . t('Content Types') . '</a></h5>',
   );
-  
+
   $form['options_group']['la']['la_types'] = array(
-    '#type' => 'checkboxes', 
-    '#title' => t('Show link for specific content types'), 
+    '#type' => 'checkboxes',
+    '#title' => t('Show link for specific content types'),
     '#default_value' => ($clid && isset($link->options['la_types'])) ? $link->options['la_types'] : array(),
-    '#options' => node_type_get_names(), 
+    '#options' => node_type_get_names(),
     '#description' => t('Show this link only on pages that display content of the given type(s). If you select no types, there will be no type-specific limitation.'),
     '#prefix' => '<div>',
     '#suffix' => '</div>',
@@ -85,13 +85,13 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
   // Per-role visibility.
   $role_options = array_map('check_plain', user_roles());
   $form['options_group']['la']['roles_title'] = array(
-    '#markup' => '<h5><a href="#">' . t('Roles') . '</a></h5>', 
+    '#markup' => '<h5><a href="#">' . t('Roles') . '</a></h5>',
   );
   $form['options_group']['la']['la_roles'] = array(
-    '#type' => 'checkboxes', 
-    '#title' => t('Show link for specific roles'), 
+    '#type' => 'checkboxes',
+    '#title' => t('Show link for specific roles'),
     '#default_value' => ($clid && isset($link->options['la_roles'])) ? $link->options['la_roles'] : array(),
-    '#options' => $role_options, 
+    '#options' => $role_options,
     '#description' => t('Show this link only for the selected role(s). If you select no roles, the link will be visible to all users.'),
     '#prefix' => '<div>',
     '#suffix' => '</div>',
@@ -99,70 +99,113 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
 }
 
 /**
- * Custom validation for the block options
+ * Implements hook_menu_local_tasks_alter().
  */
-// function ccl_blocks_validation($form, &$form_state) {
-//   $values = $form_state['values'];
+function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  global $user;
+  $dest = drupal_get_destination();
+  $is_node = ($root_path == 'node/%') ? TRUE : FALSE;
+  $la_cache = ccl_cache_get('ccl_local_actions');
 
-//   // Check that the node id token is not used for blocks
-//   if ($values['ccl_type'] == 'block' && strpos($values['ccl_link'], '[node:') !== FALSE) {
-//     form_set_error('ccl_link', t('Node tokens are not processed for links added to blocks.'));
-//   }
-// }
+  // First narrow down the list of links that fit the visibility criteria.
+  foreach ($la_cache as $id => $link) {
+    // Check for user role restriction
+    if (array_filter($link['visibility']['roles']) && !array_intersect($link['visibility']['roles'], array_keys($user->roles))) {
+      unset($la_cache[$id]);
+      continue;
+    }
 
-/**
- * Hook function to process the contextual links element
- */
-// function ccl_blocks_ccl_add_link($element, $dest) {
-//   // Check if it is a block
-//   if (isset($element['#element']['#block']->delta)) {
-//     $bid = $element['#element']['#block']->module . '|' . $element['#element']['#block']->delta;
-//     $block_cache = ccl_cache_get('ccl_blocks');
+    // Check for content type restrictions
+    if (array_filter($link['visibility']['types'])) {
+      // If this is not a node continue
+      if (!$is_node) {
+        unset($la_cache[$id]);
+        continue;
+      }
+      if (!in_array($router_item['page_arguments'][0]->type, $link['visibility']['types'], TRUE)) {
+        unset($la_cache[$id]);
+        continue;
+      }
+    }
 
-//     // Global Blocks
-//     foreach ($block_cache['global'] as $id => $link) {
-//       if ($processed_link = _ccl_prepare_link($link, $dest)) {
-//         $element['#links']['ccl-global-block-' . $id] = $processed_link;
-//       }
-//     }
+    // Check for page visibility
+    if ($link['visibility']['path'] == 1 && empty($link['visibility']['pages'])) {
+      unset($la_cache[$id]);
+      continue;
+    }
+    // Match path if necessary
+    if ($link['visibility']['pages']) {
+      // Convert path to lowercase. This allows comparison of the same path
+      // with different case. Ex: /Page, /page, /PAGE.
+      $pages = drupal_strtolower($link['visibility']['pages']);
+      $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+      // Compare the lowercase internal and lowercase path alias (if any).
+      $page_match = drupal_match_path($path, $pages);
 
-//     // Individual blocks
-//     if (in_array($bid, array_keys($block_cache['ids']))) {
-//       foreach ($block_cache['ids'][$bid] as $id => $link) {
-//         if ($processed_link = _ccl_prepare_link($link, $dest)) {
-//           $element['#links']['ccl-block-' . $id] = $processed_link;
-//         }
-//       }
-//     }
-//   }
-//   return $element;
-// }
+      if ($path != $_GET['q']) {
+        $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+      }
+
+      // When $link['visibility']['path'] has a value of 0,
+      // the link is displayed on all pages except those
+      // listed in $link['visibility']['pages'].
+      // When set to 1, it is displayed only on those pages
+      // listed in $link['visibility']['pages'].
+      $page_match = !($link['visibility']['path'] xor $page_match);
+    }
+    else {
+      $page_match = TRUE;
+    }
+
+    if (!$page_match) {
+      unset($la_cache[$id]);
+    }
+  }
+
+  foreach ($la_cache as $link) {
+    if ($processed_link = _ccl_prepare_link($link, $dest)) {
+      $processed_link['localized_options'] = array(
+        'attributes' => array(
+          'title' => $processed_link['title'],
+        ),
+      );
+      $data['actions']['output'][] = array(
+        '#theme' => 'menu_local_task',
+        '#link' => $processed_link,
+      );
+    }
+  }
+}
 
 /**
  * Hook function triggered by the chache update routine of the main module.
  */
-// function ccl_blocks_ccl_cache_update() {
-//   $blocks = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'block'));
-//   $block_cache = array('global' => array(), 'ids' => array());
-//   foreach ($blocks as $block) {
-//     $block->options = unserialize($block->options);
-//     $advanced = array();
-//     if (isset($block->options['advanced_css'])) {
-//       $advanced['class'] = $block->options['advanced_css'];
-//     }
-//     if (isset($block->options['advanced_query'])) {
-//       $advanced['query'] = $block->options['advanced_query'];
-//     }
-
-//     if ($block->options['block_global']) {
-//       $block_cache['global'][] = array('title' => $block->title, 'href' => $block->link, 'advanced' => $advanced);
-//     }
-//     else {
-//       $block_cache['ids'][$block->options['block_select']][] = array('title' => $block->title, 'href' => $block->link, 'advanced' => $advanced);
-//     }
-//   }
-//   cache_set('ccl_blocks', $block_cache);
-// }
+function ccl_local_actions_ccl_cache_update() {
+  $actions = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'local_action'));
+  $la_cache = array();
+  foreach ($actions as $action) {
+    $action->options = unserialize($action->options);
+    $advanced = array();
+    if (isset($action->options['advanced_css'])) {
+      $advanced['class'] = $action->options['advanced_css'];
+    }
+    if (isset($action->options['advanced_query'])) {
+      $advanced['query'] = $action->options['advanced_query'];
+    }
+    $la_cache[] = array(
+      'title' => $action->title,
+      'href' => $action->link,
+      'advanced' => $advanced,
+      'visibility' => array(
+        'path' => $action->options['la_visibility'],
+        'pages' => $action->options['la_pages'],
+        'types' => $action->options['la_types'],
+        'roles' => $action->options['la_roles'],
+      ),
+    );
+  }
+  cache_set('ccl_local_actions', $la_cache);
+}
 
 /**
  * Hook function to provide link option information for the link list page.
@@ -184,11 +227,11 @@ function ccl_local_actions_ccl_link_info($record) {
     }
     $clean = array_filter($options['la_types']);
     if (!empty($clean)) {
-      $options_return['desc'] .= t(' Limited by content type.');  
+      $options_return['desc'] .= ' ' . t('Limited by content type.');
     }
     $clean = array_filter($options['la_roles']);
     if (!empty($clean)) {
-      $options_return['desc'] .= t(' Limited by user roles.');  
+      $options_return['desc'] .= ' ' . t('Limited by user roles.');
     }
     return $options_return;
   }
