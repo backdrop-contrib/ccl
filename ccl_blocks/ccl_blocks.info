@@ -2,6 +2,8 @@ name = "Custom Contextual Links - Blocks"
 description = "Add on module for for Custom Contextual Links to enable support for blocks."
 
 core = 7.x
+package = Custom Contextual Links
+
 dependencies[] = contextual
 dependencies[] = ccl
 dependencies[] = block

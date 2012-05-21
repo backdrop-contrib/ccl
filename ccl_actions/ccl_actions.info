@@ -2,6 +2,8 @@ name = "Custom Contextual Links - Actions"
 description = "Add on module for for Custom Contextual Links to enable support for actions."
 
 core = 7.x
+package = Custom Contextual Links
+
 dependencies[] = contextual
 dependencies[] = ccl
 
