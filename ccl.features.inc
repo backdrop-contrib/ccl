@@ -27,9 +27,9 @@ function ccl_features_export($data, &$export, $module_name = '') {
   foreach (ccl_get_presets() as $preset) {
     if (in_array($preset->title, $data)) {
 
-      // Make the submodule required.
+      // Make the submodule required. A 's' needs to be added to the type to account for the plural module names.
       if ($preset->type != 'node') {
-        $export['dependencies']['ccl_' . $preset->type] = 'ccl_' . $preset->type;
+        $export['dependencies']['ccl_' . $preset->type . 's'] = 'ccl_' . $preset->type . 's';
       }
 
       $export['features']['ccl'][$preset->title] = $preset->title;
