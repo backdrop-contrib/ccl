@@ -163,13 +163,17 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
     }
   }
 
+  // If we are on a node, we need to send it through for token replacement
+  $node = $is_node ? $router_item['page_arguments'][0] : NULL;
   foreach ($la_cache as $link) {
-    if ($processed_link = _ccl_prepare_link($link, $dest)) {
+    if ($processed_link = _ccl_prepare_link($link, $dest, $node)) {
       // As these links are passed through a different theme function
       // we have to adjust the values a bit
-      $processed_link['localized_options']['attributes'] = $processed_link['attributes'];
+      $processed_link['localized_options'] = array(
+        'attributes' => $processed_link['attributes'],
+        'query' => $processed_link['query']
+      );
       $processed_link['localized_options']['attributes']['title'] = check_plain($processed_link['title']);
-      $processed_link['localized_options']['query'] = $processed_link['query'];
 
       $data['actions']['output'][] = array(
         '#theme' => 'menu_local_action',
