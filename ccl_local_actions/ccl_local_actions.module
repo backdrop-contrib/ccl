@@ -102,6 +102,7 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
  * Implements hook_menu_local_tasks_alter().
  */
 function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+
   global $user;
   $dest = drupal_get_destination();
   $is_node = ($root_path == 'node/%') ? TRUE : FALSE;
@@ -164,15 +165,17 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
 
   foreach ($la_cache as $link) {
     if ($processed_link = _ccl_prepare_link($link, $dest)) {
-      $processed_link['localized_options'] = array(
-        'attributes' => array(
-          'title' => $processed_link['title'],
-        ),
-      );
+      // As these links are passed through a different theme function
+      // we have to adjust the values a bit
+      $processed_link['localized_options']['attributes'] = $processed_link['attributes'];
+      $processed_link['localized_options']['attributes']['title'] = check_plain($processed_link['title']);
+      $processed_link['localized_options']['query'] = $processed_link['query'];
+
       $data['actions']['output'][] = array(
-        '#theme' => 'menu_local_task',
+        '#theme' => 'menu_local_action',
         '#link' => $processed_link,
       );
+      $data['actions']['count']++;
     }
   }
 }
