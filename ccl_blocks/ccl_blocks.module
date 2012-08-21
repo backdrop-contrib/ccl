@@ -137,6 +137,9 @@ function _ccl_blocks_get_info() {
         }
       }
     }
+    // Unset unsupported blocks.
+    unset($block_info['system|main']);
+    unset($block_info['system|help']);
     cache_set('ccl_blocks_info', $block_info);
   }
 
