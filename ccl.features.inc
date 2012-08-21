@@ -1,13 +1,11 @@
 <?php
-
 /**
  * @file
- *
  * Integrates Features for Custom Contextual Links.
  */
 
 /**
- * Implements hook_features_export_options. [component_hook]
+ * Implements hook_features_export_options().
  */
 function ccl_features_export_options() {
   $presets = array();
@@ -18,7 +16,7 @@ function ccl_features_export_options() {
 }
 
 /**
- * Implements hook_features_export [component hook]
+ * Implements hook_features_export().
  */
 function ccl_features_export($data, &$export, $module_name = '') {
   $export['dependencies']['features'] = 'features';
@@ -27,7 +25,8 @@ function ccl_features_export($data, &$export, $module_name = '') {
   foreach (ccl_get_presets() as $preset) {
     if (in_array($preset->title, $data)) {
 
-      // Make the submodule required. A 's' needs to be added to the type to account for the plural module names.
+      // Make the submodule required.
+      // A 's' needs to be added to the type for the plural module names.
       if ($preset->type != 'node') {
         $export['dependencies']['ccl_' . $preset->type . 's'] = 'ccl_' . $preset->type . 's';
       }
@@ -40,7 +39,7 @@ function ccl_features_export($data, &$export, $module_name = '') {
 }
 
 /**
- * Implements hook_features_export_render. [component hook]
+ * Implements hook_features_export_render().
  */
 function ccl_features_export_render($module, $data) {
   $code = array();

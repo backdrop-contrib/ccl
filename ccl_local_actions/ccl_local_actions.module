@@ -1,4 +1,8 @@
 <?php
+/**
+ * @file
+ * Adds the ability to create local tasks with CCL.
+ */
 
 /**
  * Implements hook_form_FORM_ID_alter().
@@ -6,7 +10,7 @@
  * Add additional form elements to the main CCL add/edit form.
  */
 function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
-  // Check if we are in edit mode
+  // Check if we are in edit mode.
   if (isset($form_state['clid'])) {
     $clid = $form_state['clid'];
     $link = $form_state['link'];
@@ -21,12 +25,11 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
   $form['options_group']['la_title'] = array(
     '#type' => 'item',
     '#title' => t('Visibility settings'),
-      '#states' => array(
+    '#states' => array(
       'visible' => array(
         ':input[name="ccl_type"]' => array('value' => 'local_action'),
       ),
     ),
-
   );
 
   // Visibility settings.
@@ -40,8 +43,7 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
   );
   $form['options_group']['la']['#attached']['library'][] = array('system', 'ui.accordion');
   $form['options_group']['la']['#attached']['js'][] = array(
-    'data' => '(function($){$(function() { $("#edit-la").accordion({autoHeight: false,
-      navigation: true}); })})(jQuery);',
+    'data' => '(function($){$(function() { $("#edit-la").accordion({autoHeight: false, navigation: true});})})(jQuery);',
     'type' => 'inline',
   );
 
@@ -64,7 +66,11 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
   $form['options_group']['la']['la_pages'] = array(
     '#type' => 'textarea',
     '#default_value' => ($clid && isset($link->options['la_pages'])) ? $link->options['la_pages'] : '',
-    '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array('%blog' => 'blog', '%blog-wildcard' => 'blog/*', '%front' => '<front>')),
+    '#description' => t("Specify pages by using their paths. Enter one path per line. The '*' character is a wildcard. Example paths are %blog for the blog page and %blog-wildcard for every personal blog. %front is the front page.", array(
+      '%blog' => 'blog',
+      '%blog-wildcard' => 'blog/*',
+      '%front' => '<front>',
+    )),
     '#suffix' => '</div>',
   );
 
@@ -110,15 +116,15 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
 
   // First narrow down the list of links that fit the visibility criteria.
   foreach ($la_cache as $id => $link) {
-    // Check for user role restriction
+    // Check for user role restriction.
     if (array_filter($link['visibility']['roles']) && !array_intersect($link['visibility']['roles'], array_keys($user->roles))) {
       unset($la_cache[$id]);
       continue;
     }
 
-    // Check for content type restrictions
+    // Check for content type restrictions.
     if (array_filter($link['visibility']['types'])) {
-      // If this is not a node continue
+      // If this is not a node continue.
       if (!$is_node) {
         unset($la_cache[$id]);
         continue;
@@ -129,12 +135,12 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
       }
     }
 
-    // Check for page visibility
+    // Check for page visibility.
     if ($link['visibility']['path'] == 1 && empty($link['visibility']['pages'])) {
       unset($la_cache[$id]);
       continue;
     }
-    // Match path if necessary
+    // Match path if necessary.
     if ($link['visibility']['pages']) {
       // Convert path to lowercase. This allows comparison of the same path
       // with different case. Ex: /Page, /page, /PAGE.
@@ -163,15 +169,15 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
     }
   }
 
-  // If we are on a node, we need to send it through for token replacement
+  // If we are on a node, we need to send it through for token replacement.
   $node = $is_node ? $router_item['page_arguments'][0] : NULL;
   foreach ($la_cache as $link) {
     if ($processed_link = _ccl_prepare_link($link, $dest, $node)) {
       // As these links are passed through a different theme function
-      // we have to adjust the values a bit
+      // we have to adjust the values a bit.
       $processed_link['localized_options'] = array(
         'attributes' => $processed_link['attributes'],
-        'query' => $processed_link['query']
+        'query' => $processed_link['query'],
       );
       $processed_link['localized_options']['attributes']['title'] = check_plain($processed_link['title']);
 
@@ -221,7 +227,7 @@ function ccl_local_actions_ccl_link_info($record) {
   if ($record->type == 'local_action') {
     $options_return = array(
       'desc' => '',
-      'op' => l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete')
+      'op' => l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete'),
     );
 
     $options = unserialize($record->options);

@@ -11,22 +11,22 @@ function ccl_admin() {
   $result = db_query("SELECT * FROM {ccl}");
   if ($result->rowCount()) {
 
-    // Get content type names
+    // Get content type names.
     $cts = node_type_get_names();
 
-    // Prepare table header
+    // Prepare table header.
     $header = array(
       t('Title'),
       t('URL'),
       t('Type'),
       t('Options'),
-      t('Operation')
+      t('Operation'),
     );
 
     $rows = array();
     foreach ($result as $record) {
       $options = array('desc' => '', 'op' => '');
-      // Prepeare the options display
+      // Prepeare the options display.
       if ($record->type == 'node') {
         $link_options = unserialize($record->options);
         switch ($link_options['node_options']) {
@@ -49,45 +49,46 @@ function ccl_admin() {
       else {
         foreach (module_implements('ccl_link_info') as $module) {
           $options = module_invoke($module, 'ccl_link_info', $record);
-          if (!empty($options)) break;
+          if (!empty($options)) {
+            break;
+          }
         }
       }
 
-      // Prepare table row
+      // Prepare table row.
       $rows[] = array(
         $record->title,
         $record->link,
         $record->type,
         $options['desc'],
-        $options['op']
+        $options['op'],
       );
     }
     return theme('table', array('header' => $header, 'rows' => $rows));
   }
 
-  // No results text
+  // No results text.
   else {
     return array(
       'empty_text' => array(
         '#type' => 'markup',
         '#markup' => '<p>' . t('No custom contextual links have been added yet. <a href="@add-page">Add a link here</a>.', array('@add-page' => url('admin/config/user-interface/ccl/add'))) . '</p>',
-      )
+      ),
     );
   }
 }
 
 /**
  * Link add and edit form.
- *
  */
 function ccl_add_form($form, &$form_state, $clid = 0) {
-  // Check if we are in edit mode and load the link values
+  // Check if we are in edit mode and load the link values.
   if ($clid) {
     $link = db_query('SELECT * FROM {ccl} WHERE clid = :clid', array(':clid' => $clid))->fetchObject();
     $form_state['clid'] = $clid;
     $form_state['link'] = $link;
 
-    // Unserialize options
+    // Unserialize options.
     $link->options = unserialize($link->options);
     $node_options = $link->options['node_options'];
     if ($node_options == 'node') {
@@ -97,7 +98,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   }
 
   $form = array();
-  // Pull in library, js and css for the form
+  // Pull in library, js and css for the form.
   $form['#attached']['library'][] = array('system', 'ui.button');
   $form['#attached']['js'][] = drupal_get_path('module', 'ccl') . '/ccl.js';
   $form['#attached']['css'][] = drupal_get_path('module', 'ccl') . '/ccl.css';
@@ -126,7 +127,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#description' => t('The URL of this link.'),
     '#size' => 40,
     '#maxlength' => 255,
-    '#required' => TRUE
+    '#required' => TRUE,
   );
 
   $form['link_group']['advanced'] = array(
@@ -155,7 +156,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form['link_group']['token_group'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tokens'),
-    '#description' => t('Token replacements will be performed for the link title and for the URL. Note that \'Node\' tokens will not be replaced for links that are added to blocks.'),
+    '#description' => t("Token replacements will be performed for the link title and for the URL. Note that 'Node' tokens will not be replaced for links that are added to blocks."),
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
   );
@@ -197,7 +198,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#options' => array(
       'node' => t('Single node'),
       'ct' => t('Content type'),
-      'global' => t('All nodes')
+      'global' => t('All nodes'),
     ),
     '#default_value' => isset($node_options) ? $node_options : 'node',
     '#states' => array(
@@ -208,7 +209,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
 
   );
 
-  // Load the content type names
+  // Load the content type names.
   $types = node_type_get_names();
   $form['options_group']['node_type'] = array(
     '#type' => 'select',
@@ -256,15 +257,18 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
 function ccl_add_form_validate($form, &$form_state) {
   $values = $form_state['values'];
 
-  // Check that that we can get the node id and transform it for saving right away.
+  // Check that that we can get the node id and transform it for saving.
   if ($values['ccl_type'] == 'node' && $values['node_options'] == 'node') {
     if (is_numeric($values['node_id'])) {
-      form_set_value($form['options_group']['node_id'], $values['node_id'], $form_state);
+      form_set_value(
+        $form['options_group']['node_id'],
+        $values['node_id'], $form_state
+      );
     }
     elseif (preg_match('/\[nid:[0-9]*\]/', $values['node_id'], $match)) {
       form_set_value($form['options_group']['node_id'], substr(rtrim($match[0], ']'), 5), $form_state);
     }
-    else{
+    else {
       form_set_error('nid', t('Enter a node id or use the autocomplete widget to select an existing node.'));
     }
   }
@@ -290,14 +294,14 @@ function ccl_add_form_submit($form, &$form_state) {
     'type' => $values['ccl_type'],
     'title' => $values['ccl_title'],
     'link' => $values['ccl_link'],
-    'options' => serialize($options)
+    'options' => serialize($options),
   );
 
   if (isset($form_state['clid'])) {
     $record['clid'] = $form_state['clid'];
     $res = drupal_write_record('ccl', $record, 'clid');
   }
-  else{
+  else {
     $res = drupal_write_record('ccl', $record);
   }
 
@@ -305,7 +309,7 @@ function ccl_add_form_submit($form, &$form_state) {
     drupal_set_message(t('Contextual link saved.'));
     _ccl_update_cache();
   }
-  else{
+  else {
     drupal_set_message(t('There was an error writing this record to the database. Please try again.'), 'error');
   }
   drupal_goto('admin/config/user-interface/ccl');
