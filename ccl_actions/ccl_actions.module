@@ -165,7 +165,7 @@ function ccl_actions_form_validate($form, &$form_state) {
  * @see ccl_actions_form()
  */
 function ccl_actions_form_submit($form, &$form_state) {
-  $form_state['values']['ccl_type'] = t('action');
+  $form_state['values']['ccl_type'] = 'action';
   $selected_actions = array_filter($form_state['values']['actions_select']);
   $form_state['values']['ccl_title'] = format_plural(count($selected_actions), 'Action %actions', ' Actions %actions', array('%actions' => implode(', ', array_keys($selected_actions))));;
   $form_state['values']['ccl_link'] = '- n/a -';
