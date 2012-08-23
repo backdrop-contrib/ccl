@@ -280,12 +280,14 @@ function ccl_add_form_validate($form, &$form_state) {
  * @see ccl_add_form()
  */
 function ccl_add_form_submit($form, &$form_state) {
+  // Clean up the values array.
+  form_state_values_clean($form_state);
   $values = $form_state['values'];
 
   // Extract the options out of the values.
   $options = array();
   foreach ($values as $key => $data) {
-    if (strpos($key, 'form_') === FALSE && strpos($key, 'ccl_') === FALSE && $key != 'op') {
+    if (strpos($key, 'ccl_') === FALSE) {
       $options[$key] = $data;
     }
   }
