@@ -19,10 +19,12 @@ function ccl_blocks_uninstall() {
  * Update the structure of block options to support multi select.
  */
 function ccl_blocks_update_7101() {
-  $blocks = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'block'));
+  $blocks = db_query("SELECT * FROM {ccl} WHERE type = :type", array(
+    ':type' => 'block')
+  );
   foreach ($blocks as $block) {
     $options = unserialize($block->options);
-    // No need in fixing the global blocks
+    // No need in fixing the global blocks.
     if (!$options['block_global']) {
       $block_key = $options['block_select'];
       $options['block_select'] = array(
@@ -31,4 +33,5 @@ function ccl_blocks_update_7101() {
       $block->options = serialize($options);
       drupal_write_record('ccl', $block, 'clid');
     }
+  }
 }
