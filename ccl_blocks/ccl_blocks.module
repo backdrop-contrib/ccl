@@ -38,8 +38,10 @@ function ccl_blocks_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
   $options = _ccl_blocks_get_info();
   $form['options_group']['block_select'] = array(
     '#type' => 'select',
-    '#title' => t('Block'),
-    '#description' => t('Seletc the block this link should be added to.'),
+    '#multiple' => TRUE,
+    '#size' => min(12, count($options)),
+    '#title' => t('Blocks'),
+    '#description' => t('Select the block(s) this link should be added to.'),
     '#options' => $options,
     '#default_value' => ($clid && isset($link->options['block_select'])) ? $link->options['block_select'] : -1,
     '#states' => array(
@@ -96,6 +98,8 @@ function ccl_blocks_ccl_add_link($element, $dest) {
 }
 
 /**
+ * Implements hook_ccl_cache_update().
+ *
  * Hook function triggered by the chache update routine of the main module.
  */
 function ccl_blocks_ccl_cache_update() {
@@ -119,11 +123,14 @@ function ccl_blocks_ccl_cache_update() {
       );
     }
     else {
-      $block_cache['ids'][$block->options['block_select']][] = array(
-        'title' => $block->title,
-        'href' => $block->link,
-        'advanced' => $advanced,
-      );
+      // Create an entry for each selected block.
+      foreach ($block->options['block_select'] as $id) {
+        $block_cache['ids'][$id][] = array(
+          'title' => $block->title,
+          'href' => $block->link,
+          'advanced' => $advanced,
+        );
+      }
     }
   }
   cache_set('ccl_blocks', $block_cache);
@@ -182,7 +189,15 @@ function ccl_blocks_ccl_link_info($record) {
     }
     else {
       $blocks = _ccl_blocks_get_info();
-      $options_return['desc'] = t('Attached to the %block block.', array('%block' => $blocks[$options['block_select']]));
+
+      $options_return['desc'] = format_plural(
+        count($options['block_select']),
+        'Attached to block: %block',
+        'Attached to blocks: %block',
+        array(
+          '%block' => implode(', ', array_intersect_key($blocks, $options['block_select'])),
+        )
+      );
     }
     return $options_return;
   }
