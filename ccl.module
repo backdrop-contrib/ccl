@@ -171,6 +171,11 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
       $link['attributes']['class'] = explode(" ", $link['advanced']['class']);
     }
 
+    // Add link target if set.
+    if (isset($link['advanced']['target'])) {
+      $link['attributes']['target'] = explode(" ", $link['advanced']['target']);
+    }
+
     // Add query if available and destination.
     $link['query'] = $destination;
     if (isset($link['advanced']['query']) && !empty($link['advanced']['query'])) {
@@ -203,6 +208,9 @@ function _ccl_update_cache() {
     }
     if (isset($node->options['advanced_query'])) {
       $advanced['query'] = $node->options['advanced_query'];
+    }
+    if (isset($node->options['advanced_target']) && $node->options['advanced_target'] != "default") {
+      $advanced['target'] = $node->options['advanced_target'];
     }
 
     if ($node->options['node_options'] == 'global') {

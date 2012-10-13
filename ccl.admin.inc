@@ -153,6 +153,18 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#maxlength' => 255,
   );
 
+  $form['link_group']['advanced']['advanced_target'] = array(
+    '#type' => 'select',
+    '#title' => t('Link Target'),
+    '#options' => array(
+      'default' => t('Default (no target attribute)'),
+      '_top' => t('Open link in window root'),
+      '_blank' => t('Open link in new window'),
+    ),
+    '#default_value' => ($clid && isset($link->options['advanced_target'])) ? $link->options['advanced_target'] : '',
+    '#description' => t('Set a target attribute for the link.'),
+  );
+
   $form['link_group']['token_group'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tokens'),
