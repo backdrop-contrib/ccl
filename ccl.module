@@ -176,6 +176,11 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
       $link['attributes']['target'] = explode(" ", $link['advanced']['target']);
     }
 
+    // Add anchor if available
+    if (isset($link['advanced']['anchor'])) {
+      $link['fragment'] = $link['advanced']['anchor'];
+    }
+
     // Add query if available and destination.
     $link['query'] = $destination;
     if (isset($link['advanced']['query']) && !empty($link['advanced']['query'])) {
@@ -205,6 +210,9 @@ function _ccl_update_cache() {
     $advanced = array();
     if (isset($node->options['advanced_css'])) {
       $advanced['class'] = $node->options['advanced_css'];
+    }
+    if (isset($node->options['advanced_anchor'])) {
+      $advanced['anchor'] = $node->options['advanced_anchor'];
     }
     if (isset($node->options['advanced_query'])) {
       $advanced['query'] = $node->options['advanced_query'];

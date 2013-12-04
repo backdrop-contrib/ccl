@@ -178,6 +178,7 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
       $processed_link['localized_options'] = array(
         'attributes' => $processed_link['attributes'],
         'query' => $processed_link['query'],
+        'fragment' => $processed_link['fragment'],
       );
       $processed_link['localized_options']['attributes']['title'] = check_plain($processed_link['title']);
 
@@ -205,6 +206,13 @@ function ccl_local_actions_ccl_cache_update() {
     if (isset($action->options['advanced_query'])) {
       $advanced['query'] = $action->options['advanced_query'];
     }
+    if (isset($action->options['advanced_anchor'])) {
+      $advanced['anchor'] = $action->options['advanced_anchor'];
+    }
+    if (isset($action->options['advanced_target']) && $action->options['advanced_target'] != "default") {
+      $advanced['target'] = $action->options['advanced_target'];
+    }
+
     $la_cache[] = array(
       'title' => $action->title,
       'href' => $action->link,
