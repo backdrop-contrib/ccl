@@ -178,7 +178,7 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
       $processed_link['localized_options'] = array(
         'attributes' => $processed_link['attributes'],
         'query' => $processed_link['query'],
-        'fragment' => $processed_link['fragment'],
+        'fragment' => isset($processed_link['fragment']) ? $processed_link['fragment'] : '',
       );
       $processed_link['localized_options']['attributes']['title'] = check_plain($processed_link['title']);
 
