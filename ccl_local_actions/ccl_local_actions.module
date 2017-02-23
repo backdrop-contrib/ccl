@@ -212,6 +212,9 @@ function ccl_local_actions_ccl_cache_update() {
     if (isset($action->options['advanced_target']) && $action->options['advanced_target'] != "default") {
       $advanced['target'] = $action->options['advanced_target'];
     }
+    if (isset($action->options['advanced_destination'])) {
+      $advanced['destination'] = $action->options['advanced_destination'];
+    }
 
     $la_cache[] = array(
       'title' => $action->title,

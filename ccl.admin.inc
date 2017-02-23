@@ -171,6 +171,12 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#default_value' => ($clid && isset($link->options['advanced_target'])) ? $link->options['advanced_target'] : '',
     '#description' => t('Set a target attribute for the link.'),
   );
+  $form['link_group']['advanced']['advanced_destination'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Include destination parameter in Link'),
+    '#default_value' => ($clid && isset($link->options['advanced_destination'])) ? $link->options['advanced_destination'] : TRUE,
+    '#description' => t('If checked, the current page path will be added to the link\'s "destination" parameter (which will return the user to this page if they submit a form from the link target).'),
+  );
   $form['link_group']['token_group'] = array(
     '#type' => 'fieldset',
     '#title' => t('Tokens'),

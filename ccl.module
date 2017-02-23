@@ -182,7 +182,7 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
     }
 
     // Add query if available and destination.
-    if (!url_is_external($link['href'])) {
+    if (!url_is_external($link['href']) && (!isset($link['advanced']['destination']) || $link['advanced']['destination'])) {
       $link['query'] = $destination;
     }
     if (isset($link['advanced']['query']) && !empty($link['advanced']['query'])) {
@@ -221,6 +221,9 @@ function _ccl_update_cache() {
     }
     if (isset($node->options['advanced_target']) && $node->options['advanced_target'] != "default") {
       $advanced['target'] = $node->options['advanced_target'];
+    }
+    if (isset($node->options['advanced_destination'])) {
+      $advanced['destination'] = $node->options['advanced_destination'];
     }
 
     if ($node->options['node_options'] == 'global') {
