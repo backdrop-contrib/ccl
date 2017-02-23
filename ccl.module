@@ -80,10 +80,12 @@ function ccl_features_api() {
 /**
  * Retrieve a link based on it's title.
  */
-function ccl_get_presets($title = NULL) {
+function ccl_get_presets($key = NULL) {
   $presets = array();
-  if ($title) {
-    $results = db_query('SELECT * FROM {ccl} WHERE title = :title', array(':title' => $title));
+  if ($key) {
+    $key_parts = explode('||ID', $key);
+    $results = db_query('SELECT * FROM {ccl} WHERE clid = :clid AND title = :title',
+      array(':clid' => $key_parts[1], ':title' => $key_parts[0]));
   }
   else {
     $results = db_query('SELECT * FROM {ccl}');

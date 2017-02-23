@@ -57,7 +57,7 @@ function ccl_admin() {
 
       // Prepare table row.
       $rows[] = array(
-        $record->title,
+        $record->title . ' <small>[ID: ' . $record->clid . ']</small>',
         $record->link,
         $record->type,
         $options['desc'],
