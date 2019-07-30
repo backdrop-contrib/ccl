@@ -5,9 +5,10 @@
  */
 
 /**
- * CCL adminitsration form.
+ * CCL administration form.
  */
 function ccl_admin() {
+  $page = array();
   $result = db_query("SELECT * FROM {ccl}");
   if ($result->rowCount()) {
 
@@ -17,19 +18,27 @@ function ccl_admin() {
     // Prepare table header.
     $header = array(
       t('Title'),
-      t('URL'),
+      t('Contextual Link URL'),
       t('Type'),
       t('Options'),
-      t('Operation'),
+      t('Operations'),
     );
 
     $rows = array();
     foreach ($result as $record) {
       $options = array(
         'desc' => '',
-        'op' => '',
       );
-      // Prepeare the options display.
+      $operations = array();
+      // Prepare the options display.
+      $operations['edit'] = array(
+        'title' => t('Edit'),
+        'href' => 'admin/config/user-interface/ccl/' . $record->clid . '/edit',
+      );
+      $operations['delete'] = array(
+        'title' => t('Delete'),
+        'href' => 'admin/config/user-interface/ccl/' . $record->clid . '/delete',
+      );
       if ($record->type == 'node') {
         $link_options = unserialize($record->options);
         switch ($link_options['node_options']) {
@@ -46,8 +55,6 @@ function ccl_admin() {
             $options['desc'] = t('Attached to %node_title [NID: !nid].', array('%node_title' => $node_title, '!nid' => $link_options['node_id']));
             break;
         }
-        $options['op'] = l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete');
-
       }
       else {
         foreach (module_implements('ccl_link_info') as $module) {
@@ -60,14 +67,35 @@ function ccl_admin() {
 
       // Prepare table row.
       $rows[] = array(
-        $record->title . ' <small>[ID: ' . $record->clid . ']</small>',
-        $record->link,
-        $record->type,
-        $options['desc'],
-        $options['op'],
+        'title' => array(
+          'data' => $record->title . ' <small>[ID: ' . $record->clid . ']</small>',
+        ),
+        'link' => array(
+          'data' => $record->link,
+        ),
+        'type' => array(
+          'data' => $record->type,
+        ),
+        'desc' => array(
+          'data' => $options['desc'],
+        ),
+        'operations' => array(
+          'data' => array(
+            '#type' => 'dropbutton',
+            '#links' => $operations,
+          ),
+        ),
       );
     }
-    return theme('table', array('header' => $header, 'rows' => $rows));
+    
+    $page['ccl_listing'] = array(
+      '#theme' => 'table', 
+      '#header' => $header, 
+      '#rows' => $rows,
+      '#empty' => t('No custom contextual links have been added yet. <a href="@add-page">Add a link here</a>.', array('@add-page' => url('admin/config/user-interface/ccl/add'))),
+    );
+    return $page;
+    
   }
 
   // No results text.

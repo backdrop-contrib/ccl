@@ -338,8 +338,6 @@ function ccl_actions_ccl_link_info($record) {
     // Get content type names.
     $cts = node_type_get_names();
 
-    $options_return['op'] = l(t('Edit'), 'admin/config/user-interface/ccl/action/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete');
-
     $options = unserialize($record->options);
 
     switch ($options['node_options']) {

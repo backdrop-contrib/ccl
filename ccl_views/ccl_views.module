@@ -224,8 +224,8 @@ function ccl_views_ccl_link_info($record) {
   if ($record->type == 'view') {
     $options_return = array(
       'desc' => '',
-      'op' => l(t('Edit'), 'admin/config/user-interface/ccl/' . $record->clid . '/edit') . ' | ' . l(t('Delete'), 'admin/config/user-interface/ccl/' . $record->clid . '/delete'),
     );
+    
     $options = unserialize($record->options);
 
     if ($options['view_options'] == 0) {
