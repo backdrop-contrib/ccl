@@ -188,19 +188,12 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
     '#collapsed' => TRUE,
   );
 
-  if (module_exists('token')) {
-    $form['link_group']['token_group']['tokens'] = array(
-      '#theme' => 'token_tree',
-      '#token_types' => array('node'),
-      '#global_types' => TRUE,
-      '#click_insert' => TRUE,
-    );
-  }
-  else {
-    $form['link_group']['token_group']['token_tree'] = array(
-      '#markup' => '<p>' . t('Enable the <a href="@backdrop-token">Token module</a> to view the available token browser.', array('@backdrop-token' => 'http://drupal.org/project/token')) . '</p>',
-    );
-  }
+  $form['link_group']['token_group']['tokens'] = array(
+    '#theme' => 'token_tree',
+    '#token_types' => array('node'),
+    '#global_types' => TRUE,
+    '#click_insert' => TRUE,
+  );
 
   $form['options_group'] = array(
     '#type' => 'fieldset',
