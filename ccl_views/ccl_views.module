@@ -36,8 +36,8 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
     '#default_value' => $view_options_default,
     '#options' => array(
       t('All views'),
-      t('All displays of a view.'),
-      t('A specific display of a view.'),
+      t('All displays of a view'),
+      t('A specific display of a view'),
     ),
     '#states' => array(
       'visible' => array(
