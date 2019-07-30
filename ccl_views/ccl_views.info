@@ -1,5 +1,5 @@
 name = "Custom Contextual Links - Views"
-description = "Add on module for for Custom Contextual Links to enable support for views."
+description = "Enable support for Views with CCL."
 
 backdrop = 1.x
 type = module

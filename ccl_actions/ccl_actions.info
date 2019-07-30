@@ -1,5 +1,5 @@
 name = "Custom Contextual Links - Actions"
-description = "Add on module for for Custom Contextual Links to enable support for actions."
+description = "Enable support for actions with CCL."
 
 backdrop = 1.x
 type = module

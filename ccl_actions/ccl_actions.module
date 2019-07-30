@@ -282,6 +282,7 @@ function _ccl_actions_prepare_link($actions, $node, &$element, $dest) {
  * Trigger function to execute actions.
  */
 function ccl_actions_trigger($node, $action, $state) {
+  $context = NULL;
   if (!node_access('update', $node)) {
     backdrop_set_message(t('You have no permission to update %node_title.', array('%node_title' => $node->title)), 'error');
     backdrop_goto();
@@ -289,12 +290,12 @@ function ccl_actions_trigger($node, $action, $state) {
   switch ($action) {
     case 'status':
       if ($state) {
-        actions_do('node_publish_action', $node);
+        actions_execute('node_publish_action', $node, $context);
         node_save($node);
         backdrop_set_message(t('%node_title has been published.', array('%node_title' => $node->title)));
       }
       else {
-        $res = actions_do('node_unpublish_action', $node);
+        $res = actions_execute('node_unpublish_action', $node, $context);
         node_save($node);
         backdrop_set_message(t('%node_title has been unpublished.', array('%node_title' => $node->title)));
       }
@@ -302,12 +303,12 @@ function ccl_actions_trigger($node, $action, $state) {
 
     case 'sticky':
       if ($state) {
-        actions_do('node_make_sticky_action', $node);
+        actions_execute('node_make_sticky_action', $node, $context);
         node_save($node);
         backdrop_set_message(t('%node_title has been made sticky.', array('%node_title' => $node->title)));
       }
       else {
-        $res = actions_do('node_make_unsticky_action', $node);
+        $res = actions_execute('node_make_unsticky_action', $node, $context);
         node_save($node);
         backdrop_set_message(t('%node_title has been made unsticky.', array('%node_title' => $node->title)));
       }
@@ -315,12 +316,12 @@ function ccl_actions_trigger($node, $action, $state) {
 
     case 'promote':
       if ($state) {
-        actions_do('node_promote_action', $node);
+        actions_execute('node_promote_action', $node, $context);
         node_save($node);
         backdrop_set_message(t('%node_title has been promoted to front page.', array('%node_title' => $node->title)));
       }
       else {
-        $res = actions_do('node_unpromote_action', $node);
+        $res = actions_execute('node_unpromote_action', $node, $context);
         node_save($node);
         backdrop_set_message(t('%node_title has been removed from front page.', array('%node_title' => $node->title)));
       }

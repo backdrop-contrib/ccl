@@ -1,5 +1,5 @@
 name = "Custom Contextual Links - Blocks"
-description = "Add on module for for Custom Contextual Links to enable support for blocks."
+description = "Enable support for Blocks with CCL."
 
 backdrop = 1.x
 type = module

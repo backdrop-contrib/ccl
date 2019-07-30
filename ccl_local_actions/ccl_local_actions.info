@@ -1,5 +1,5 @@
 name = "Custom Contextual Links - Local Actions"
-description = "Add on module for for Custom Contextual Links to enable support for local action links."
+description = "Enable support for local action links with CCL."
 
 backdrop = 1.x
 type = module
