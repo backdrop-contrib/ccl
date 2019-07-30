@@ -39,6 +39,9 @@ function ccl_admin() {
         'title' => t('Delete'),
         'href' => 'admin/config/user-interface/ccl/' . $record->clid . '/delete',
       );
+      if ($record->type == 'action') {
+        $operations['edit']['href'] = 'admin/config/user-interface/ccl/action/' . $record->clid . '/edit';
+      } 
       if ($record->type == 'node') {
         $link_options = unserialize($record->options);
         switch ($link_options['node_options']) {
