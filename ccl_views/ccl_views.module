@@ -82,8 +82,7 @@ function ccl_views_form_ccl_add_form_alter(&$form, &$form_state, $form_id) {
 /**
  * Custom validation for the block options.
  */
-function ccl_views_validation($form, &$form_state) {
-}
+function ccl_views_validation($form, &$form_state) { }
 
 /**
  * Hook function to process the contextual links element.

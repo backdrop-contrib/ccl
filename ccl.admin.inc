@@ -25,7 +25,10 @@ function ccl_admin() {
 
     $rows = array();
     foreach ($result as $record) {
-      $options = array('desc' => '', 'op' => '');
+      $options = array(
+        'desc' => '',
+        'op' => '',
+      );
       // Prepeare the options display.
       if ($record->type == 'node') {
         $link_options = unserialize($record->options);
@@ -100,8 +103,8 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   $form = array();
   // Pull in library, js and css for the form.
   $form['#attached']['library'][] = array('system', 'ui.button');
-  $form['#attached']['js'][] = drupal_get_path('module', 'ccl') . '/ccl.js';
-  $form['#attached']['css'][] = drupal_get_path('module', 'ccl') . '/ccl.css';
+  $form['#attached']['js'][] = backdrop_get_path('module', 'ccl') . '/ccl.js';
+  $form['#attached']['css'][] = backdrop_get_path('module', 'ccl') . '/ccl.css';
 
 
   $form['link_group'] = array(
@@ -195,7 +198,7 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
   }
   else {
     $form['link_group']['token_group']['token_tree'] = array(
-      '#markup' => '<p>' . t('Enable the <a href="@drupal-token">Token module</a> to view the available token browser.', array('@drupal-token' => 'http://drupal.org/project/token')) . '</p>',
+      '#markup' => '<p>' . t('Enable the <a href="@backdrop-token">Token module</a> to view the available token browser.', array('@backdrop-token' => 'http://drupal.org/project/token')) . '</p>',
     );
   }
 
@@ -230,7 +233,6 @@ function ccl_add_form($form, &$form_state, $clid = 0) {
         ':input[name="ccl_type"]' => array('value' => 'node'),
       ),
     ),
-
   );
 
   // Load the content type names.
@@ -325,20 +327,20 @@ function ccl_add_form_submit($form, &$form_state) {
 
   if (isset($form_state['clid'])) {
     $record['clid'] = $form_state['clid'];
-    $res = drupal_write_record('ccl', $record, 'clid');
+    $res = backdrop_write_record('ccl', $record, 'clid');
   }
   else {
-    $res = drupal_write_record('ccl', $record);
+    $res = backdrop_write_record('ccl', $record);
   }
 
   if ($res) {
-    drupal_set_message(t('Contextual link saved.'));
+    backdrop_set_message(t('Contextual link saved.'));
     _ccl_update_cache();
   }
   else {
-    drupal_set_message(t('There was an error writing this record to the database. Please try again.'), 'error');
+    backdrop_set_message(t('There was an error writing this record to the database. Please try again.'), 'error');
   }
-  drupal_goto('admin/config/user-interface/ccl');
+  backdrop_goto('admin/config/user-interface/ccl');
 }
 
 /**
@@ -366,9 +368,9 @@ function ccl_delete_confirm_submit($form, &$form_state) {
     db_delete('ccl')
       ->condition('clid', $form_state['values']['clid'])
       ->execute();
-    drupal_set_message(t('Link removed.'));
+    backdrop_set_message(t('Link removed.'));
     _ccl_update_cache();
-    drupal_goto('admin/config/user-interface/ccl');
+    backdrop_goto('admin/config/user-interface/ccl');
   }
 }
 
@@ -387,5 +389,5 @@ function ccl_node_autocomplete($string = '') {
       $matches[check_plain($node->title) . ' [nid:' . $node->nid . ']'] = check_plain($node->title);
     }
   }
-  drupal_json_output($matches);
+  backdrop_json_output($matches);
 }

@@ -104,7 +104,10 @@ function ccl_blocks_ccl_add_link($element, $dest) {
  */
 function ccl_blocks_ccl_cache_update() {
   $blocks = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'block'));
-  $block_cache = array('global' => array(), 'ids' => array());
+  $block_cache = array(
+    'global' => array(),
+    'ids' => array(),
+  );
   foreach ($blocks as $block) {
     $block->options = unserialize($block->options);
     $advanced = array();
@@ -204,8 +207,8 @@ function ccl_blocks_ccl_link_info($record) {
         'Attached to block: %block',
         'Attached to blocks: %block',
         array(
-          '%block' => implode(', ', array_intersect_key($blocks, $options['block_select'])),
-        )
+        '%block' => implode(', ', array_intersect_key($blocks, $options['block_select'])),
+      )
       );
     }
     return $options_return;

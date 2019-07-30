@@ -110,7 +110,7 @@ function ccl_local_actions_form_ccl_add_form_alter(&$form, &$form_state, $form_i
 function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_path) {
 
   global $user;
-  $dest = drupal_get_destination();
+  $dest = backdrop_get_destination();
   $is_node = ($root_path == 'node/%') ? TRUE : FALSE;
   $la_cache = ccl_cache_get('ccl_local_actions');
 
@@ -144,13 +144,13 @@ function ccl_local_actions_menu_local_tasks_alter(&$data, $router_item, $root_pa
     if ($link['visibility']['pages']) {
       // Convert path to lowercase. This allows comparison of the same path
       // with different case. Ex: /Page, /page, /PAGE.
-      $pages = drupal_strtolower($link['visibility']['pages']);
-      $path = drupal_strtolower(drupal_get_path_alias($_GET['q']));
+      $pages = backdrop_strtolower($link['visibility']['pages']);
+      $path = backdrop_strtolower(backdrop_get_path_alias($_GET['q']));
       // Compare the lowercase internal and lowercase path alias (if any).
-      $page_match = drupal_match_path($path, $pages);
+      $page_match = backdrop_match_path($path, $pages);
 
       if ($path != $_GET['q']) {
-        $page_match = $page_match || drupal_match_path($_GET['q'], $pages);
+        $page_match = $page_match || backdrop_match_path($_GET['q'], $pages);
       }
 
       // When $link['visibility']['path'] has a value of 0,

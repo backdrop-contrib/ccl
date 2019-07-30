@@ -83,10 +83,10 @@ function ccl_features_rebuild($module) {
     $current_record = current(ccl_get_presets($key));
     if (!empty($current_record)) {
       $preset->clid = $current_record->clid;
-      drupal_write_record('ccl', $preset, 'clid');
+      backdrop_write_record('ccl', $preset, 'clid');
     }
     else {
-      drupal_write_record('ccl', $preset);
+      backdrop_write_record('ccl', $preset);
     }
   }
 }

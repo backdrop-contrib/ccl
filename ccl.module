@@ -29,7 +29,7 @@ function ccl_menu() {
 
   $items['admin/config/user-interface/ccl/add'] = array(
     'title' => 'Add new link',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('ccl_add_form'),
     'access arguments' => array('use ccl'),
     'type' => MENU_LOCAL_ACTION,
@@ -38,7 +38,7 @@ function ccl_menu() {
 
   $items['admin/config/user-interface/ccl/%/delete'] = array(
     'title' => 'Delete custom link',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('ccl_delete_confirm', 4),
     'access arguments' => array('use ccl'),
     'file' => 'ccl.admin.inc',
@@ -46,7 +46,7 @@ function ccl_menu() {
 
   $items['admin/config/user-interface/ccl/%/edit'] = array(
     'title' => 'Edit custom link',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('ccl_add_form', 4),
     'access arguments' => array('use ccl'),
     'file' => 'ccl.admin.inc',
@@ -70,7 +70,7 @@ function ccl_features_api() {
   return array(
     'ccl' => array(
       'name' => 'Custom Contextual Links',
-      'file' => drupal_get_path('module', 'ccl') . '/ccl.features.inc',
+      'file' => backdrop_get_path('module', 'ccl') . '/ccl.features.inc',
       'default_hook' => 'ccl_features_preset',
       'feature_source' => TRUE,
     ),
@@ -105,7 +105,7 @@ function ccl_get_presets($key = NULL) {
  */
 function ccl_contextual_links_view_alter(&$element, $items) {
   // Get the destination parameter.
-  $dest = drupal_get_destination();
+  $dest = backdrop_get_destination();
 
   // Check if we have a node link to process.
   if (isset($element['#element']['#node']->nid)) {
@@ -164,7 +164,7 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
   $link['href'] = $node ? token_replace($link['href'], array('node' => $node)) : token_replace($link['href']);
 
   // Check the access permission.
-  if (drupal_valid_path($link['href'], TRUE)) {
+  if (backdrop_valid_path($link['href'], TRUE)) {
     // Token replacement for the title.
     $link['title'] = $node ? token_replace($link['title'], array('node' => $node)) : token_replace($link['title']);
 
@@ -208,7 +208,11 @@ function _ccl_prepare_link($link, $destination, $node = NULL) {
 function _ccl_update_cache() {
   // Create entry for nodes.
   $nodes = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'node'));
-  $node_cache = array('global' => array(), 'ct' => array(), 'ids' => array());
+  $node_cache = array(
+    'global' => array(),
+    'ct' => array(),
+    'ids' => array(),
+  );
   foreach ($nodes as $node) {
     $node->options = unserialize($node->options);
     $advanced = array();

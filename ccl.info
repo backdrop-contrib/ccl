@@ -1,11 +1,9 @@
 name = "Custom Contextual Links"
 description = "Add your own contextual links to nodes"
 
-core = 7.x
+backdrop = 1.x
+type = module
 package = Custom Contextual Links
 dependencies[] = contextual
-
-files[] = ccl.module
-files[] = ccl.admin.inc
 
 configure = admin/config/user-interface/ccl

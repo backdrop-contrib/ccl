@@ -11,7 +11,7 @@ function ccl_actions_menu() {
 
   $items['admin/config/user-interface/ccl/action/add'] = array(
     'title' => 'Add new node action link',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('ccl_actions_form'),
     'access arguments' => array('use ccl'),
     'type' => MENU_LOCAL_ACTION,
@@ -19,7 +19,7 @@ function ccl_actions_menu() {
   );
   $items['admin/config/user-interface/ccl/action/%/edit'] = array(
     'title' => 'Edit custom link',
-    'page callback' => 'drupal_get_form',
+    'page callback' => 'backdrop_get_form',
     'page arguments' => array('ccl_actions_form', 5),
     'access arguments' => array('use ccl'),
   );
@@ -57,8 +57,8 @@ function ccl_actions_form($form, &$form_state, $clid = 0) {
   $form = array();
   // Pull in library, js and css for the form.
   $form['#attached']['library'][] = array('system', 'ui.button');
-  $form['#attached']['js'][] = drupal_get_path('module', 'ccl') . '/ccl.js';
-  $form['#attached']['css'][] = drupal_get_path('module', 'ccl') . '/ccl.css';
+  $form['#attached']['js'][] = backdrop_get_path('module', 'ccl') . '/ccl.js';
+  $form['#attached']['css'][] = backdrop_get_path('module', 'ccl') . '/ccl.css';
 
   // Add an ID wrapper so that the JS and CSS from the main module take effect.
   $form['#prefix'] = '<div id="ccl-add-form">';
@@ -170,7 +170,7 @@ function ccl_actions_form_validate($form, &$form_state) {
 function ccl_actions_form_submit($form, &$form_state) {
   $form_state['values']['ccl_type'] = 'action';
   $selected_actions = array_filter($form_state['values']['actions_select']);
-  $form_state['values']['ccl_title'] = format_plural(count($selected_actions), 'Action %actions', ' Actions %actions', array('%actions' => implode(', ', array_keys($selected_actions))));;
+  $form_state['values']['ccl_title'] = format_plural(count($selected_actions), 'Action %actions', ' Actions %actions', array('%actions' => implode(', ', array_keys($selected_actions))));
   $form_state['values']['ccl_link'] = '- n/a -';
 
   module_load_include('inc', 'ccl', 'ccl.admin');
@@ -283,20 +283,20 @@ function _ccl_actions_prepare_link($actions, $node, &$element, $dest) {
  */
 function ccl_actions_trigger($node, $action, $state) {
   if (!node_access('update', $node)) {
-    drupal_set_message(t('You have no permission to update %node_title.', array('%node_title' => $node->title)), 'error');
-    drupal_goto();
+    backdrop_set_message(t('You have no permission to update %node_title.', array('%node_title' => $node->title)), 'error');
+    backdrop_goto();
   }
   switch ($action) {
     case 'status':
       if ($state) {
         actions_do('node_publish_action', $node);
         node_save($node);
-        drupal_set_message(t('%node_title has been published.', array('%node_title' => $node->title)));
+        backdrop_set_message(t('%node_title has been published.', array('%node_title' => $node->title)));
       }
       else {
         $res = actions_do('node_unpublish_action', $node);
         node_save($node);
-        drupal_set_message(t('%node_title has been unpublished.', array('%node_title' => $node->title)));
+        backdrop_set_message(t('%node_title has been unpublished.', array('%node_title' => $node->title)));
       }
       break;
 
@@ -304,12 +304,12 @@ function ccl_actions_trigger($node, $action, $state) {
       if ($state) {
         actions_do('node_make_sticky_action', $node);
         node_save($node);
-        drupal_set_message(t('%node_title has been made sticky.', array('%node_title' => $node->title)));
+        backdrop_set_message(t('%node_title has been made sticky.', array('%node_title' => $node->title)));
       }
       else {
         $res = actions_do('node_make_unsticky_action', $node);
         node_save($node);
-        drupal_set_message(t('%node_title has been made unsticky.', array('%node_title' => $node->title)));
+        backdrop_set_message(t('%node_title has been made unsticky.', array('%node_title' => $node->title)));
       }
       break;
 
@@ -317,17 +317,17 @@ function ccl_actions_trigger($node, $action, $state) {
       if ($state) {
         actions_do('node_promote_action', $node);
         node_save($node);
-        drupal_set_message(t('%node_title has been promoted to front page.', array('%node_title' => $node->title)));
+        backdrop_set_message(t('%node_title has been promoted to front page.', array('%node_title' => $node->title)));
       }
       else {
         $res = actions_do('node_unpromote_action', $node);
         node_save($node);
-        drupal_set_message(t('%node_title has been removed from front page.', array('%node_title' => $node->title)));
+        backdrop_set_message(t('%node_title has been removed from front page.', array('%node_title' => $node->title)));
       }
       break;
   }
   // Return to set destination parameter.
-  drupal_goto();
+  backdrop_goto();
 }
 
 /**
@@ -368,7 +368,11 @@ function ccl_actions_ccl_link_info($record) {
  */
 function ccl_actions_ccl_cache_update() {
   $actions = db_query("SELECT * FROM {ccl} WHERE type = :type", array(':type' => 'action'));
-  $actions_cache = array('global' => array(), 'ct' => array(), 'ids' => array());
+  $actions_cache = array(
+    'global' => array(),
+    'ct' => array(),
+    'ids' => array(),
+  );
   foreach ($actions as $action) {
     $action->options = unserialize($action->options);
     $filtered_actions = array_keys(array_filter($action->options['actions_select']));

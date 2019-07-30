@@ -15,13 +15,5 @@ function ccl_local_actions_uninstall() {
   ->execute();
 }
 
-/**
- * Implements hook_update_N().
- * Renames type of links from 'local_action' to 'local_actions'.
- */
-function ccl_local_actions_update_7100() {
-  db_update('ccl')
-    ->fields(array('type' => 'local_actions'))
-    ->condition('type', 'local_action')
-    ->execute();
-}
+// TODO The old hook_update_N functions cannot be applied to Backdrop.
+function ccl_local_actions_update_7100() { }

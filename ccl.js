@@ -1,6 +1,6 @@
 (function ($) {
 
-Drupal.behaviors.ccl = {
+Backdrop.behaviors.ccl = {
   attach: function (context, settings) {
     // This behavior attaches by ID, so is only valid once on a page.
     if ($('#ccl-add-form', context).size()) {
